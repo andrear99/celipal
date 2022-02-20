@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "791866963301",
+    "project_id": "tfg-2022-flutterfirebase",
+    "storage_bucket": "tfg-2022-flutterfirebase.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791866963301:android:943fae343604e4d7241d8c",
+        "android_client_info": {
+          "package_name": "com.example.celipal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "791866963301-7g1q5r4lv02k5etedkh70lqcoc8j46mt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAj92l6uF0ddRIwc4z0R87hwBJam4-KuKk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "791866963301-7g1q5r4lv02k5etedkh70lqcoc8j46mt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
