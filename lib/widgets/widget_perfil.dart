@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-class paginaPerfil extends StatelessWidget {
-  const paginaPerfil({Key? key}) : super(key: key);
+class widget_perfil extends StatelessWidget {
+  const widget_perfil({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

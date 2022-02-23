@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-class paginaRestaurantes extends StatelessWidget {
-  const paginaRestaurantes({Key? key}) : super(key: key);
+class widget_restaurantes extends StatelessWidget {
+  const widget_restaurantes({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

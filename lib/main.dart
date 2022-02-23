@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 
-import 'inicio.dart';
+import 'package:celipal/pages/inicio_user.dart';
 import 'registro.dart';
 import 'auxiliar.dart';
 //import 'package:google_sign_in/google_sign_in.dart';
@@ -390,7 +390,7 @@ Y como nota importante también debe quedar claro que se puede trabajr con Async
         // Por eso no hace falta ningun if: si seguimos dentro del try es porque la cosa ha ido bien. 
         // Suponemos que la cosa va bien, asi que lo siguiente sería navegar hacia la pagina Home de nuestra app (se ha iniciado sesion)
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Home()));
+            context, MaterialPageRoute(builder: (context) => Inicio_User()));
         // Cambiamos el indicador de progreso que le pusimos
         setState(() {
           _cambiarEstadoIndicadorProgreso();

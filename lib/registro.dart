@@ -1,6 +1,9 @@
+import 'package:celipal/pages/inicio_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'inicio.dart';
 import 'auxiliar.dart';
@@ -293,14 +296,26 @@ class PaginaRegistroState extends State<PaginaRegistro> {
 
   Future<void> registroNuevoUsuario(BuildContext context) async {
     User usuario;
+    final firestoreInstance = FirebaseFirestore.instance;
     try {
       usuario = (await auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _contrasenaController1.text.trim())).user!;
+        ///// REGISTRO EL USER TAMBIEN EN LA BBDD AUNQUE UN SIN EL UID CORRESPONDIENTE
+       firestoreInstance.collection("Usuario").add({
+            "nombre": _usuarioController.text.trim(),
+            "UID": 'null',
+            "email": _emailController.text.trim(),
+            "isAdmin": false, // En un principio isAdmin siempre será false-
+            //"isAdmin": {"street": "street 24", "city": "new york"}
+          }).then((value) {
+            print(value.id);
+          });
+          print("usuario creado en la bbdd.\n");
       mostrarSnackBar("Usuario creado correctamente",context);
       Navigator.pop(context);
       Navigator.push(context,
-        MaterialPageRoute(builder: (context) => Home()));
+        MaterialPageRoute(builder: (context) => Inicio_User()));
 
     } on FirebaseAuthException catch(e) {
       if (e.code == "weak-password")
