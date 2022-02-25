@@ -1,12 +1,11 @@
-import 'package:celipal/pages/inicio_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'inicio.dart';
 import 'auxiliar.dart';
+import 'package:celipal/pages/inicio_user.dart';
 
 class PaginaRegistro extends StatefulWidget {
   @override
@@ -307,6 +306,8 @@ class PaginaRegistroState extends State<PaginaRegistro> {
             "UID": 'null',
             "email": _emailController.text.trim(),
             "isAdmin": false, // En un principio isAdmin siempre será false-
+            "restaurantes_fav": [],
+            "productos_fav": []
             //"isAdmin": {"street": "street 24", "city": "new york"}
           }).then((value) {
             print(value.id);

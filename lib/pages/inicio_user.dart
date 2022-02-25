@@ -43,7 +43,7 @@ class _InicioUserState extends State<Inicio_User> {
     String? uid = "";
     String? nombre = "";
     bool isAdmin =
-        false; // isAdmin siempre empieza siendo false. Luego otro admin tendrá que activar esto desde la propia bbdd de Firebase.
+        false;
     final firestoreInstance = FirebaseFirestore.instance;
 
     if (usuario != null) {
@@ -54,35 +54,36 @@ class _InicioUserState extends State<Inicio_User> {
           .where("email", isEqualTo: email)
           .get()
           .then((value) {
-            value.docs.forEach((result) {
-              // HAGO UPDATE DEL UID EN CASO DE QUE SEA NULL (PORQUE SE ACABA DE REGISTRAR)
-             if(result.get('UID') == 'null'){
-                print("\nMODIFICANDO UID PORQUE ERA NULL\n");
-                firestoreInstance
-                    .collection("Usuario")
-                    .doc(result.id)
-                    .update({"UID": uid}).then((_) {
-                  print("success!");
-                });
-             }
+        value.docs.forEach((result) {
+          // HAGO UPDATE DEL UID EN CASO DE QUE SEA NULL (PORQUE SE ACABA DE REGISTRAR)
+          if (result.get('UID') == 'null') {
+            print("\nMODIFICANDO UID PORQUE ERA NULL\n");
+            firestoreInstance
+                .collection("Usuario")
+                .doc(result.id)
+                .update({"UID": uid}).then((_) {
+              print("success!");
+            });
+          }
 
-             // COMPRUEBO SI ES ADMIN
-             if (result.get("isAdmin") == true){
-               print("\nERES ADMIN");
-             }
-             });
+          // COMPRUEBO SI ES ADMIN
+          if (result.get("isAdmin") == true) {
+            print("\nERES ADMIN");
+          }
+        });
       });
     }
     return Scaffold(
       body: _paginas[_paginaActual],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: TextButton.icon(
           onPressed: () {
             _salir(context);
           },
-          label: Text(email,
+          label: Text('BIENVENIDO A CELIPAL - TU AMIGO CELIACO',
               style: TextStyle(
-                  fontSize: 25, color: Color.fromARGB(255, 255, 255, 255))),
+                  fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
           icon: Icon(
             Icons.logout,
             color: Colors.white70,
