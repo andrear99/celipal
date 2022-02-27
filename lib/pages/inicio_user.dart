@@ -30,9 +30,10 @@ class Inicio_User extends StatefulWidget {
 
 class _InicioUserState extends State<Inicio_User> {
   int _paginaActual = 0;
+
   List<Widget> _paginas = [
-    widget_productos(),
-    widget_restaurantes(),
+    widget_productos(true),
+    widget_restaurantes(true),
     widget_perfil()
   ];
 
@@ -42,11 +43,10 @@ class _InicioUserState extends State<Inicio_User> {
     String? email = "";
     String? uid = "";
     String? nombre = "";
-    bool isAdmin =
-        false;
+    bool isAdmin = false;
     final firestoreInstance = FirebaseFirestore.instance;
-
-    if (usuario != null) {
+    //whois();
+    /*if (usuario != null) {
       email = usuario.email!;
       uid = usuario.uid;
       firestoreInstance
@@ -65,14 +65,10 @@ class _InicioUserState extends State<Inicio_User> {
               print("success!");
             });
           }
-
-          // COMPRUEBO SI ES ADMIN
-          if (result.get("isAdmin") == true) {
-            print("\nERES ADMIN");
-          }
+          isAdmin = result.get("isAdmin");
         });
       });
-    }
+    }*/
     return Scaffold(
       body: _paginas[_paginaActual],
       appBar: AppBar(
@@ -108,38 +104,53 @@ class _InicioUserState extends State<Inicio_User> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    whois();
+  }
+
+  void whois() async{
+  final User? usuario = FirebaseAuth.instance.currentUser;
+    String? email = "";
+    String? uid = "";
+    String? nombre = "";
+    bool isAdmin = false;
+    final firestoreInstance = FirebaseFirestore.instance;
+  if (usuario != null) {
+    email = usuario.email!;
+    uid = usuario.uid;
+    await firestoreInstance
+        .collection("Usuario")
+        .where("email", isEqualTo: email)
+        .get()
+        .then((value) {
+      value.docs.forEach((result) {
+        // HAGO UPDATE DEL UID EN CASO DE QUE SEA NULL (PORQUE SE ACABA DE REGISTRAR)
+        if (result.get('UID') == 'null') {
+          print("\nMODIFICANDO UID PORQUE ERA NULL\n");
+          firestoreInstance
+              .collection("Usuario")
+              .doc(result.id)
+              .update({"UID": uid}).then((_) {
+            print("success!");
+          });
+        }
+        setState(() {
+          isAdmin = result.get("isAdmin");
+          _paginas[0] = widget_productos(isAdmin);
+          _paginas[1] = widget_restaurantes(isAdmin);
+        });
+
+      });
+    });
+  }
+}
+
   void _salir(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     Navigator.pop(context);
   }
 }
 
-class GetUserEmail extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    CollectionReference users =
-        FirebaseFirestore.instance.collection('Usuario');
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: users.doc("9UcprzWqgVIIGnTXGDBF").get(),
-      builder:
-          (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Text("Something went wrong");
-        }
-
-        if (snapshot.hasData && !snapshot.data!.exists) {
-          return Text("Document does not exist");
-        }
-
-        if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> data =
-              snapshot.data!.data() as Map<String, dynamic>;
-          return Text("Full Name: ${data['isAdmin']} ${data['username']}");
-        }
-
-        return Text("loading");
-      },
-    );
-  }
-}

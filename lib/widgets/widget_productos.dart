@@ -5,7 +5,8 @@ import 'package:favorite_button/favorite_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class widget_productos extends StatefulWidget {
-  widget_productos();
+  bool isAdmin;
+  widget_productos(this.isAdmin);
   @override
   State<widget_productos> createState() => _widget_productosState();
 }
@@ -22,6 +23,8 @@ class _widget_productosState extends State<widget_productos> {
         if (!snapshot.hasData) {
           return CircularProgressIndicator();
         }
+        print("AQUI");
+        print(widget.isAdmin);
         return ListView.builder(
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (BuildContext context, int index) {
@@ -46,7 +49,7 @@ class _widget_productosState extends State<widget_productos> {
                           ],
                         ),
                       ),
-                      Expanded(
+                      if(!widget.isAdmin)Expanded(
                         child: FutureBuilder(
                           future: es_fav(snapshot.data!.docs[index].id),
                           builder:
@@ -104,6 +107,7 @@ class _widget_productosState extends State<widget_productos> {
             });
           }
         }
+        widget.isAdmin = result.get('isAdmin');
       },
     );
     return res;
