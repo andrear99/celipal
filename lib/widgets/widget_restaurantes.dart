@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../pages/producto.dart';
+import '../pages/restaurante.dart';
 import 'package:favorite_button/favorite_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -23,8 +23,6 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
         if (!snapshot.hasData) {
           return CircularProgressIndicator();
         }
-        print("AQUI");
-        print(widget.isAdmin);
         return ListView.builder(
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (BuildContext context, int index) {
@@ -33,7 +31,7 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (BuildContext context) => name()));
+                          builder: (BuildContext context) => restaurante_form()));
                 },
                 child: new Card(
                   margin: EdgeInsets.all(10),

@@ -23,8 +23,6 @@ class _widget_productosState extends State<widget_productos> {
         if (!snapshot.hasData) {
           return CircularProgressIndicator();
         }
-        print("AQUI");
-        print(widget.isAdmin);
         return ListView.builder(
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (BuildContext context, int index) {
@@ -33,13 +31,14 @@ class _widget_productosState extends State<widget_productos> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (BuildContext context) => name()));
+                          builder: (BuildContext context) => producto_form(isAdmin: widget.isAdmin, id_producto: snapshot.data!.docs[index].id )));
                 },
                 child: new Card(
                   margin: EdgeInsets.all(10),
                   child: new Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
+                      Expanded(child: Image.asset('assets/logo_celipal.png'),),
                       Expanded(
                         flex: 2,
                         child: Column(
