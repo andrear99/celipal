@@ -45,6 +45,7 @@ dependencies:
   provider: ^4.3.2+3
   favorite_button: ^0.0.4
   flutter_form_builder: ^7.1.1
+  getwidget: ^2.0.4
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,7 @@ flutter:
   assets:
      - assets/logo_celipal.png
      - assets/google.png
+     - assets/
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

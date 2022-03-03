@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../main.dart';
+import 'package:getwidget/getwidget.dart';
 
 class producto_form extends StatefulWidget {
   bool isAdmin;
@@ -26,7 +27,7 @@ class _producto_formState extends State<producto_form> {
                 fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
       ),
       body: Container(
-        child: MyCustomForm(),
+        child: MyCustomForm(producto: widget.id_producto),
         padding: EdgeInsets.all(30.0),
       ),
     );
@@ -38,19 +39,39 @@ class _producto_formState extends State<producto_form> {
   }
 }
 
-class MyCustomForm extends StatefulWidget {
+class name extends StatefulWidget {
+  name({Key? key}) : super(key: key);
+
   @override
-  MyCustomFormState createState() {
-    return MyCustomFormState();
+  State<name> createState() => _nameState();
+}
+
+class _nameState extends State<name> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
+}
+
+class MyCustomForm extends StatefulWidget {
+  String producto;
+  MyCustomForm({Key? key, required this.producto}) : super(key: key);
+  @override
+  MyCustomFormState createState() => MyCustomFormState();
 }
 
 class MyCustomFormState extends State<MyCustomForm> {
   int _len = 0;
-  List<bool> isChecked = [];
-  List<DocumentSnapshot> currencyItems = [];
-  List<DocumentSnapshot> currencyChecksAlergenos = [];
+  List<bool> isCheckedAlergenos = [];
+  List<bool> isCheckedCategorias = [];
+  List<String> currencyItems = [];
+  List<String> currencyChecksAlergenos = [];
+  List<String> currencyChecksCategorias = [];
+
+  List<dynamic> listaAlergenos = [];
+  List<String> listaCategorias = [];
   var selected;
+  bool face = false;
 
   // Crea una clave global que identificará de manera única el widget Form
   // y nos permita validar el formulario
@@ -93,89 +114,7 @@ class MyCustomFormState extends State<MyCustomForm> {
             },
           ),
           SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 100,
-                  child: TextFormField(
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Precio estimado',
-                    ),
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Escribe el precio de compra.';
-                      }
-                    },
-                  ),
-                ),
-              ),
-              SizedBox( width: 10),
-              Expanded(
-                flex: 2,
-                child: Container(
-                  height: 100,
-                  child: TextFormField(
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Marca',
-                    ),
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Escriba la marca del producto.';
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-          StreamBuilder<QuerySnapshot>(
-            stream:
-                FirebaseFirestore.instance.collection('Provincia').snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return CircularProgressIndicator();
-              } else {
-                List<DropdownMenuItem> currencyItems = [];
-                for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                  DocumentSnapshot snap = snapshot.data!.docs.elementAt(i);
-                  currencyItems.add(DropdownMenuItem(
-                    child: Text(snap.get('nombre')),
-                    value: "${snap.id}",
-                  ));
-                }
-                return Row(children: [
-                  Expanded(
-                      child: Text(
-                    "Provincia:",
-                    style: TextStyle(fontSize: 16),
-                  )),
-                  Expanded(
-                      flex: 3,
-                      child: DropdownButtonFormField<dynamic>(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                        ),
-                        isExpanded: true,
-                        items: currencyItems,
-                        onChanged: (currencyValue) {
-                          setState(() {
-                            selected = currencyValue;
-                          });
-                        },
-                        value: selected,
-                        hint: Text("Selecciona una provincia"),
-                        icon: Icon(Icons.arrow_drop_down),
-                        iconSize: 42,
-                      ))
-                ]);
-              }
-            },
-          ),
+          
           StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('Alergenos')
@@ -184,36 +123,160 @@ class MyCustomFormState extends State<MyCustomForm> {
                 if (!snapshot.hasData) {
                   return CircularProgressIndicator();
                 } else {
+                  
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                    isChecked.add(false);
+                    isCheckedAlergenos.add(false);
                     _len++;
                     currencyChecksAlergenos
-                        .add(snapshot.data!.docs.elementAt(i));
+                        .add(snapshot.data!.docs.elementAt(i).get('nombre'));
                   }
-                  return ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      itemCount: _len,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(
-                              "${currencyChecksAlergenos.elementAt(index).get('nombre')}"),
-                          trailing: Checkbox(
-                              onChanged: (checked) {
-                                setState(
-                                  () {
-                                    isChecked[index] = checked!;
-                                  },
-                                );
+                  return Row(
+                      children: [
+                        Text("Alérgenos:", style: TextStyle(fontSize: 16)), 
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            child: GFMultiSelect(
+                              items: currencyChecksAlergenos,
+                              onSelect: (value) {
+                                print('selected $value ');
+                                
+                                listaAlergenos.clear();
+                                listaAlergenos.addAll(value);
+
+                                ;
                               },
-                              value: isChecked[index]),
-                        );
-                      }
-                  );
+                              dropdownTitleTileText: 'Selecciona una o varias',
+                              dropdownTitleTileColor: Colors.grey[200],
+                              dropdownTitleTileMargin: EdgeInsets.only(
+                                  top: 22, left: 18, right: 18, bottom: 5),
+                              dropdownTitleTilePadding: EdgeInsets.all(10),
+                              dropdownUnderlineBorder: const BorderSide(
+                                  color: Colors.transparent, width: 2),
+                              dropdownTitleTileBorder:
+                              Border.all(color: Colors.grey[300]!, width: 1),
+                              dropdownTitleTileBorderRadius: BorderRadius.circular(5),
+                              expandedIcon: const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.black54,
+                              ),
+                              collapsedIcon: const Icon(
+                                Icons.keyboard_arrow_up,
+                                color: Colors.black54,
+                              ),
+                              submitButton: ElevatedButton(onPressed: (){
+                                listaAlergenos.forEach((index) {
+                                  // Lo que tenemos en ListaAlergenos son los indices de los elementos seleccionados, para acceder a ellos usamos esos indices
+                                  // para obtener los elementos de currencyCheckAlergenos de cada posicion corresp a los indices
+                                  print(currencyChecksAlergenos.elementAt(index));
+                                });
+                              }, child: Text("Aceptar"),),
+                              dropdownTitleTileTextStyle: const TextStyle(
+                                  fontSize: 14, color: Colors.black54),
+                              padding: const EdgeInsets.all(6),
+                              margin: const EdgeInsets.all(6),
+                              type: GFCheckboxType.basic,
+                              activeBgColor: Colors.green.withOpacity(0.5),
+                              inactiveBorderColor: Colors.grey[200]!,
+                              cancelButton: Text("Cerrar")),
+                            ),
+                          )
+                        ],
+                    )
+                  ;
                 }
               },
             ),
-          
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Categoria')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return CircularProgressIndicator();
+                } else {
+                  for (int i = 0; i < snapshot.data!.docs.length; i++) {
+                    isCheckedCategorias.add(false);
+                    _len++;
+                    currencyChecksCategorias
+                        .add(snapshot.data!.docs.elementAt(i).get('nombre'));
+                  }
+                  return Row(
+                      children: [
+                        Text("Categorías:", style: TextStyle(fontSize: 16)), 
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            child: GFMultiSelect(
+                              items: currencyChecksCategorias,
+                              onSelect: (value) {
+                                print('selected $value ');
+                                
+                              },
+                              dropdownTitleTileText: 'Selecciona una o varias',
+                              dropdownTitleTileColor: Colors.grey[200],
+                              dropdownTitleTileMargin: EdgeInsets.only(
+                                  top: 22, left: 18, right: 18, bottom: 5),
+                              dropdownTitleTilePadding: EdgeInsets.all(10),
+                              dropdownUnderlineBorder: const BorderSide(
+                                  color: Colors.transparent, width: 2),
+                              dropdownTitleTileBorder:
+                              Border.all(color: Colors.grey[300]!, width: 1),
+                              dropdownTitleTileBorderRadius: BorderRadius.circular(5),
+                              expandedIcon: const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.black54,
+                              ),
+                              collapsedIcon: const Icon(
+                                Icons.keyboard_arrow_up,
+                                color: Colors.black54,
+                              ),
+                              submitButton: ElevatedButton(onPressed: (){
+                                print(currencyChecksCategorias.length);
+
+                              }, child: Text("Aceptar"),),
+                              dropdownTitleTileTextStyle: const TextStyle(
+                                  fontSize: 14, color: Colors.black54),
+                              padding: const EdgeInsets.all(6),
+                              margin: const EdgeInsets.all(6),
+                              type: GFCheckboxType.basic,
+                              activeBgColor: Colors.green.withOpacity(0.5),
+                              inactiveBorderColor: Colors.grey[200]!,
+                            ),
+                          ))
+                        ],
+                    )
+                  ;
+                }
+            },
+          ),
+          SizedBox(height: 10,),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Image.asset('assets/controladoporfacecabecera.png', width: 45, height: 45,)
+                  ),
+                  Flexible(
+                    child: Container(
+                      margin: EdgeInsets.only(bottom: 6),
+                      child: Checkbox(
+                        value: face,
+                        onChanged: (value) {
+                        setState(() {
+                          face = !face;
+                          });
+                        },
+                      )
+                    )
+                  )
+                ],
+              ),
+              FloatingActionButton(child: Icon(Icons.add_a_photo), onPressed: (){}, tooltip: "Añade una imagen",)
+            ]
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
@@ -232,5 +295,7 @@ class MyCustomFormState extends State<MyCustomForm> {
         ],
       ),
     ));
-  }
 }
+
+}
+
