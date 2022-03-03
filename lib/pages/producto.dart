@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,6 +10,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../main.dart';
 import 'package:getwidget/getwidget.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:ffi';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:path/path.dart' as Path;
 
 class producto_form extends StatefulWidget {
   bool isAdmin;
@@ -39,20 +47,6 @@ class _producto_formState extends State<producto_form> {
   }
 }
 
-class name extends StatefulWidget {
-  name({Key? key}) : super(key: key);
-
-  @override
-  State<name> createState() => _nameState();
-}
-
-class _nameState extends State<name> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
 class MyCustomForm extends StatefulWidget {
   String producto;
   MyCustomForm({Key? key, required this.producto}) : super(key: key);
@@ -72,6 +66,10 @@ class MyCustomFormState extends State<MyCustomForm> {
   List<String> listaCategorias = [];
   var selected;
   bool face = false;
+
+  File? _imageFile=null;
+  String _urlImage = '';
+  UploadTask? task;
 
   // Crea una clave global que identificará de manera única el widget Form
   // y nos permita validar el formulario
@@ -274,9 +272,35 @@ class MyCustomFormState extends State<MyCustomForm> {
                   )
                 ],
               ),
-              FloatingActionButton(child: Icon(Icons.add_a_photo), onPressed: (){}, tooltip: "Añade una imagen",)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: FloatingActionButton(
+                      heroTag: null,
+                      child: Icon(Icons.add_a_photo), 
+                      onPressed: (){
+                        _openGallery(context);
+                      }, 
+                      tooltip: "Añade una imagen",
+                    )
+                  ),
+                  SizedBox(height: 10,),
+                  if(_imageFile != null) Text(Path.basename(_imageFile!.path)),
+                ],
+              ),
+              FloatingActionButton(
+                heroTag: null,
+                child: Icon(Icons.upload_file), 
+                onPressed: (){
+                  uploadFile();
+                }, 
+                tooltip: "Subir",
+              )
+              
             ]
           ),
+          
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
@@ -295,7 +319,30 @@ class MyCustomFormState extends State<MyCustomForm> {
         ],
       ),
     ));
+  }
+
+void _openGallery(BuildContext context) async{
+  final result = await FilePicker.platform.pickFiles(allowMultiple: false);
+  if(result==null){
+    return;
+  }
+  final path = result.files.single.path;
+  setState(() {
+    _imageFile = File(path!);
+  });
 }
 
-}
+ Future uploadFile() async {
+    if (_imageFile == null) return;
 
+    FirebaseStorage storage = FirebaseStorage.instance;
+    Reference ref = storage.ref().child('Post Images');
+    var timeKey = DateTime.now();
+    final UploadTask uploadTask = ref.child(timeKey.toString()+".jpg").putFile(_imageFile!);
+
+    var imageUrl = await (await uploadTask).ref.getDownloadURL(); 
+    _urlImage = imageUrl.toString();
+    print(_urlImage);
+    
+}
+}
