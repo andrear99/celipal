@@ -14,6 +14,13 @@ class widget_productos extends StatefulWidget {
 class _widget_productosState extends State<widget_productos> {
   final User? usuario = FirebaseAuth.instance.currentUser;
   final firestoreInstance = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final databaseReference = FirebaseFirestore.instance;
@@ -95,16 +102,17 @@ class _widget_productosState extends State<widget_productos> {
         if (result.get('productos_fav').toString() == '[]') {
           print(
               "LA LISTA ESTÁ VACÍA. EL PRODUCTO NO ESTÁ EN LA LISTA DE FAVORITOS.\n");
-          res == false;
+          res = false;
         } else {
-          while (res == false) {
             result.get('productos_fav').forEach((r) {
+              print(id_producto + ":" + r.toString());
               if (r.toString() == id_producto) {
                 print("EL PRODUCTO ESTÁ EN LA LISTA DE FAVORITOS.\n");
                 res = true;
+              }else{
+                return false;
               }
-            });
-          }
+            }); 
         }
         widget.isAdmin = result.get('isAdmin');
       },

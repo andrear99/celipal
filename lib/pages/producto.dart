@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -56,14 +55,24 @@ class MyCustomForm extends StatefulWidget {
 
 class MyCustomFormState extends State<MyCustomForm> {
   int _len = 0;
+
+  final _nombre = TextEditingController();
+  final _descripcion = TextEditingController();
+  final _precio = TextEditingController();
+  final _marca = TextEditingController();
+
+
   List<bool> isCheckedAlergenos = [];
   List<bool> isCheckedCategorias = [];
   List<String> currencyItems = [];
-  List<String> currencyChecksAlergenos = [];
-  List<String> currencyChecksCategorias = [];
+  List<String> currencyChecksAlergenos = []; // LISTA COMPLETA DE NOMBRES DE ALÉRGENOS
+  List<String> currencyChecksCategorias = []; // LISTA COMPLETA DE NOMBRES DE CATEGORÍAS
 
-  List<dynamic> listaAlergenos = [];
-  List<String> listaCategorias = [];
+  List<String> currencyChecksAlergenosIDs = [];
+  List<String> currencyChecksCategoriasIDs = [];
+
+  List<dynamic> listaAlergenos = []; // INDICES DE LOS ALERGENOS
+  List<dynamic> listaCategorias = []; // INDICES DE LAS CATEGORIAS
   var selected;
   bool face = false;
 
@@ -77,6 +86,15 @@ class MyCustomFormState extends State<MyCustomForm> {
   // Nota: Esto es un GlobalKey<FormState>, no un GlobalKey<MyCustomFormState>!
   final _formKey = GlobalKey<FormState>();
   
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    _nombre.dispose();
+    _descripcion.dispose();
+    _marca.dispose();
+    _precio.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +106,7 @@ class MyCustomFormState extends State<MyCustomForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           TextFormField(
+            controller: _nombre,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
               hintText: 'Nombre',
@@ -100,6 +119,7 @@ class MyCustomFormState extends State<MyCustomForm> {
           ),
           SizedBox(height: 10),
           TextFormField(
+            controller: _descripcion,
             maxLines: 10,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
@@ -112,7 +132,48 @@ class MyCustomFormState extends State<MyCustomForm> {
             },
           ),
           SizedBox(height: 10),
-          
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 100,
+                  child: TextFormField(
+                    controller: _precio,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Precio estimado',
+                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Escribe el precio de compra.';
+                      }
+                    },
+                  ),
+                ),
+              ),
+              SizedBox( width: 10),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  height: 100,
+                  child: TextFormField(
+                    controller: _marca,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Marca',
+                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Escriba la marca del producto.';
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
           StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('Alergenos')
@@ -121,12 +182,13 @@ class MyCustomFormState extends State<MyCustomForm> {
                 if (!snapshot.hasData) {
                   return CircularProgressIndicator();
                 } else {
-                  
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
                     isCheckedAlergenos.add(false);
                     _len++;
                     currencyChecksAlergenos
-                        .add(snapshot.data!.docs.elementAt(i).get('nombre'));
+                        .add(snapshot.data!.docs.elementAt(i).get('nombre')); // para rellenar el selector
+                    currencyChecksAlergenosIDs
+                        .add(snapshot.data!.docs.elementAt(i).id);    
                   }
                   return Row(
                       children: [
@@ -138,10 +200,8 @@ class MyCustomFormState extends State<MyCustomForm> {
                               items: currencyChecksAlergenos,
                               onSelect: (value) {
                                 print('selected $value ');
-                                
                                 listaAlergenos.clear();
                                 listaAlergenos.addAll(value);
-
                                 ;
                               },
                               dropdownTitleTileText: 'Selecciona una o varias',
@@ -176,7 +236,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                               type: GFCheckboxType.basic,
                               activeBgColor: Colors.green.withOpacity(0.5),
                               inactiveBorderColor: Colors.grey[200]!,
-                              cancelButton: Text("Cerrar")),
+                              cancelButton: Text("Eliminar selección")),
                             ),
                           )
                         ],
@@ -198,6 +258,8 @@ class MyCustomFormState extends State<MyCustomForm> {
                     _len++;
                     currencyChecksCategorias
                         .add(snapshot.data!.docs.elementAt(i).get('nombre'));
+                    currencyChecksCategoriasIDs
+                        .add(snapshot.data!.docs.elementAt(i).id);
                   }
                   return Row(
                       children: [
@@ -209,7 +271,8 @@ class MyCustomFormState extends State<MyCustomForm> {
                               items: currencyChecksCategorias,
                               onSelect: (value) {
                                 print('selected $value ');
-                                
+                                listaCategorias.clear();
+                                listaCategorias.addAll(value);
                               },
                               dropdownTitleTileText: 'Selecciona una o varias',
                               dropdownTitleTileColor: Colors.grey[200],
@@ -240,6 +303,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                               type: GFCheckboxType.basic,
                               activeBgColor: Colors.green.withOpacity(0.5),
                               inactiveBorderColor: Colors.grey[200]!,
+                              cancelButton: Text("Eliminar selección")
                             ),
                           ))
                         ],
@@ -248,19 +312,19 @@ class MyCustomFormState extends State<MyCustomForm> {
                 }
             },
           ),
-          SizedBox(height: 10,),
+          SizedBox(height: 40,),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Flexible(
-                    child: Image.asset('assets/controladoporfacecabecera.png', width: 45, height: 45,)
-                  ),
-                  Flexible(
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 6),
-                      child: Checkbox(
+              Row(children: [
+                Flexible(child: 
+                  Image.asset('assets/controladoporfacecabecera.png', width: 45, height: 45,)
+                ),
+                Flexible(child: 
+                  Container(
+                    margin: EdgeInsets.only(bottom: 6),
+                    child: 
+                      Checkbox(
                         value: face,
                         onChanged: (value) {
                         setState(() {
@@ -268,51 +332,61 @@ class MyCustomFormState extends State<MyCustomForm> {
                           });
                         },
                       )
-                    )
                   )
-                ],
+                )
+              ],
               ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: FloatingActionButton(
+              SizedBox(height: 10,),
+              Row(children: [
+                  Column(children: [
+                    FloatingActionButton(
                       heroTag: null,
                       child: Icon(Icons.add_a_photo), 
                       onPressed: (){
                         _openGallery(context);
                       }, 
                       tooltip: "Añade una imagen",
-                    )
-                  ),
-                  SizedBox(height: 10,),
-                  if(_imageFile != null) Text(Path.basename(_imageFile!.path)),
-                ],
-              ),
-              FloatingActionButton(
-                heroTag: null,
-                child: Icon(Icons.upload_file), 
-                onPressed: (){
-                  uploadFile();
-                }, 
-                tooltip: "Subir",
-              )
-              
-            ]
+                    ), 
+                    SizedBox(height: 10,),
+                    if(_imageFile != null) 
+                      Row(children: [
+                        Text(Path.basename(_imageFile!.path)),
+                        Container(
+                          height: 20.0,
+                          width: 20.0,
+                          child: FittedBox(
+                            child: FloatingActionButton(
+                              backgroundColor: Colors.redAccent,
+                              child: Icon(Icons.cancel_outlined, color: Colors.white, size: 50,) ,
+                              onPressed: () {
+                                setState(() {
+                                  _imageFile = null;
+                                });
+                              }),
+                          ),
+                          
+                        ) ]),
+                  ],
+                ),
+            ],),
+            ],
           ),
-          
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
               onPressed: () {
                 // devolverá true si el formulario es válido, o falso si
                 // el formulario no es válido.
+                print("holi");
+                _upload();
                 if (_formKey.currentState!.validate()) {
                   // Si el formulario es válido, queremos mostrar un Snackbar
                   Scaffold.of(context)
                       .showSnackBar(SnackBar(content: Text('Processing Data')));
                 }
               },
+              /*style: ElevatedButton.styleFrom(
+              alignment: Alignment.bottomCenter,),*/
               child: Text('Crear Producto'),
             ),
           ),
@@ -320,6 +394,32 @@ class MyCustomFormState extends State<MyCustomForm> {
       ),
     ));
   }
+
+void _upload() async{
+  print(_urlImage);
+  List<String> _listaFinalAlergenos = [];
+  List<String> _listaFinalCategorias = [];
+  listaAlergenos.forEach((element) {_listaFinalAlergenos.add(currencyChecksAlergenosIDs[element]);});
+  listaCategorias.forEach((element) {_listaFinalCategorias.add(currencyChecksCategoriasIDs.elementAt(element));});
+
+  // Subimos el producto
+  await uploadFile();
+  FirebaseFirestore.instance.collection('Producto').add(
+   {
+     "nombre" : _nombre.text,
+     "marca" : _marca.text,
+     "precio_estimado" : _precio.text,
+     "face" : face,
+     "descripcion" : _descripcion.text,
+     "imagen" : _urlImage,
+     "categorias" : _listaFinalCategorias,
+     "alergenos" : _listaFinalAlergenos
+   } 
+  ).then((value){
+    //dispose();
+    print(value.id);});
+    Navigator.pop(context);
+}
 
 void _openGallery(BuildContext context) async{
   final result = await FilePicker.platform.pickFiles(allowMultiple: false);
@@ -333,16 +433,16 @@ void _openGallery(BuildContext context) async{
 }
 
  Future uploadFile() async {
+   FirebaseStorage storage = FirebaseStorage.instance;
     if (_imageFile == null) return;
 
-    FirebaseStorage storage = FirebaseStorage.instance;
     Reference ref = storage.ref().child('Post Images');
     var timeKey = DateTime.now();
     final UploadTask uploadTask = ref.child(timeKey.toString()+".jpg").putFile(_imageFile!);
 
     var imageUrl = await (await uploadTask).ref.getDownloadURL(); 
     _urlImage = imageUrl.toString();
-    print(_urlImage);
+    print("holi" + _urlImage);
     
 }
 }
