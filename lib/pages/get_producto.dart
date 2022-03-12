@@ -16,6 +16,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path/path.dart' as Path;
 import 'package:flutter_svg/svg.dart';
+import '../widgets/widget_alert_dialog.dart';
 
 class get_producto extends StatefulWidget {
   bool isAdmin;
@@ -27,7 +28,6 @@ class get_producto extends StatefulWidget {
 }
 
 class _get_productoState extends State<get_producto> {
-
   @override
   void initState() {
     super.initState();
@@ -41,7 +41,7 @@ class _get_productoState extends State<get_producto> {
                 fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
       ),
       body: Container(
-        child: body_get_poducto(producto: widget.producto),
+        child: body_get_poducto(producto: widget.producto, isAdmin: widget.isAdmin,),
         padding: EdgeInsets.all(30.0),
       ),
     );
@@ -54,13 +54,16 @@ class _get_productoState extends State<get_producto> {
 }
 
 class body_get_poducto extends StatefulWidget {
+  bool isAdmin;
   QueryDocumentSnapshot producto;
-  body_get_poducto({Key? key, required this.producto}) : super(key: key);
+  body_get_poducto({Key? key, required this.producto, required this.isAdmin}) : super(key: key);
   @override
   State<body_get_poducto> createState() => _body_get_poductoState();
 }
 
 class _body_get_poductoState extends State<body_get_poducto> {
+  final firestoreInstance = FirebaseFirestore.instance;
+  var firebaseUser = FirebaseAuth.instance.currentUser;
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -105,18 +108,42 @@ class _body_get_poductoState extends State<body_get_poducto> {
                     child: Text(widget.producto.get('descripcion')),
                   ),
                   const SizedBox(height: 16.0 * 2),
-                  Center(
-                    child: SizedBox(
-                      width: 200,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                            primary: Color(0xFFF67952),
-                            shape: const StadiumBorder()),
-                        child: const Text("Add to Cart"),
+                  if(widget.isAdmin) Container(
+                    alignment: Alignment.center,
+                    child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 70,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            //showAlertDialog(context);
+                            _delete(widget.producto);
+                          },
+                          style: ElevatedButton.styleFrom(
+                              primary: Color.fromARGB(255, 240, 71, 71),
+                              shape: const StadiumBorder()),
+                          child: Icon(Icons.delete_outline),
+                        ),
                       ),
-                    ),
+                      SizedBox(
+                        width: 20,
+                      ),
+                       SizedBox(
+                        width: 70,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                              primary: Color.fromARGB(255, 82, 246, 134),
+                              shape: const StadiumBorder()),
+                          child: Icon(Icons.update),
+                        ),
+                      ),
+                    ],
+                  ),
                   )
                 ],
               ),
@@ -125,4 +152,63 @@ class _body_get_poductoState extends State<body_get_poducto> {
         ],
       );
   }
+
+  Future<void> _delete(QueryDocumentSnapshot producto) async {
+    // Borramos el producto de las listas de Categorias
+    
+    final categorias = await firestoreInstance
+        .collection("Categoria")
+        .where("productos", arrayContains: producto.id)
+        .get();
+
+    categorias.docs.forEach((c) async {
+      await FirebaseFirestore.instance
+        .collection("Categoria")
+        .doc(c.id)
+        .update(
+          {
+            "productos": FieldValue.arrayRemove([producto.id])
+          }
+        );
+    });
+    //Borramos el producto de las listas de Alergenos
+
+    final alergenos = await firestoreInstance
+        .collection("Alergenos")
+        .where("productos", arrayContains: producto.id)
+        .get();
+
+    alergenos.docs.forEach((a) async {
+      await FirebaseFirestore.instance
+        .collection("Alergenos")
+        .doc(a.id)
+        .update(
+          {
+            "productos": FieldValue.arrayRemove([producto.id])
+          }
+        );
+    });
+    // Borramos el producto de los favoritos de los usuarios
+    final usuarios = await firestoreInstance
+        .collection("Usuario")
+        .where("productos_fav", arrayContains: producto.id)
+        .get();
+
+    usuarios.docs.forEach((u) async {
+      await FirebaseFirestore.instance
+        .collection("Usuario")
+        .doc(u.id)
+        .update(
+          {
+            "productos_fav": FieldValue.arrayRemove([producto.id])
+          }
+        );
+    });
+    // Borramos el producto completo de firebase
+    firestoreInstance.collection("Producto").doc(producto.id).delete().then((_) {
+    print("success!");
+    Navigator.pop(context);
+  });
+  }
 }
+

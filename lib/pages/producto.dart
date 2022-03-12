@@ -382,7 +382,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                 if (_formKey.currentState!.validate()) {
                   // Si el formulario es válido, queremos mostrar un Snackbar
                   Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text('Processing Data')));
+                      .showSnackBar(SnackBar(content: Text('Producto creado con éxito.')));
                 }
               },
               /*style: ElevatedButton.styleFrom(
@@ -416,7 +416,10 @@ void _upload() async{
      "alergenos" : _listaFinalAlergenos
    } 
   ).then((value){
-    //dispose();
+     // Incluimos el producto en las categorias elegidas
+    _update_categorias(_listaFinalCategorias, value.id);
+    // Incluimos el producto en los alergenos seleccionados
+    _update_alergenos(_listaFinalAlergenos, value.id);
     print(value.id);});
     Navigator.pop(context);
 }
@@ -445,4 +448,33 @@ void _openGallery(BuildContext context) async{
     print("holi" + _urlImage);
     
 }
+
+void _update_categorias(List<String> _listaFinalCategorias, String id){
+  _listaFinalCategorias.forEach((c) async { 
+    final categorias = await FirebaseFirestore.instance
+        .collection("Categoria")
+        .doc(c)
+        .update(
+          {
+            "productos": FieldValue.arrayUnion([id])
+          }
+        );
+  });
 }
+
+void _update_alergenos(List<String> _listaFinalAlergenos, String id){
+  _listaFinalAlergenos.forEach((c) async { 
+    final alergenos = await FirebaseFirestore.instance
+        .collection("Alergenos")
+        .doc(c)
+        .update(
+          {
+            "productos": FieldValue.arrayUnion([id])
+          }
+        );
+  });
+}
+
+}
+
+
