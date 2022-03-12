@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../pages/producto.dart';
 import 'package:favorite_button/favorite_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../pages/get_producto.dart';
 
 class widget_productos extends StatefulWidget {
   bool isAdmin;
@@ -24,70 +25,87 @@ class _widget_productosState extends State<widget_productos> {
   @override
   Widget build(BuildContext context) {
     final databaseReference = FirebaseFirestore.instance;
-    return StreamBuilder(
-      stream: databaseReference.collection('Producto').snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (!snapshot.hasData) {
-          return CircularProgressIndicator();
-        }
-        return ListView.builder(
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (BuildContext context, int index) {
-            return InkWell(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => producto_form(isAdmin: widget.isAdmin, id_producto: snapshot.data!.docs[index].id )));
-                },
-                child: new Card(
-                  margin: EdgeInsets.all(10),
-                  child: new Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Expanded(child: Image.asset('assets/logo_celipal.png'),),
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          children: [
-                            new Text(snapshot.data!.docs[index].get('nombre')),
-                            new Text(snapshot.data!.docs[index].get('marca')),
-                          ],
+    return Scaffold(
+      body: StreamBuilder(
+        stream: databaseReference.collection('Producto').snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) {
+            return CircularProgressIndicator();
+          }
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (BuildContext context, int index) {
+              return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => get_producto(isAdmin: widget.isAdmin, producto: snapshot.data!.docs[index],)));
+                  },
+                  child: new Card(
+                    margin: EdgeInsets.all(10),
+                    child: new Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Expanded(child: Image.network(snapshot.data!.docs[index].get('imagen')),),
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              new Text(snapshot.data!.docs[index].get('nombre')),
+                              new Text(snapshot.data!.docs[index].get('marca')),
+                            ],
+                          ),
                         ),
-                      ),
-                      if(!widget.isAdmin)Expanded(
-                        child: FutureBuilder(
-                          future: es_fav(snapshot.data!.docs[index].id),
-                          builder:
-                              (BuildContext context, AsyncSnapshot snapshot2) {
-                            if (snapshot2.hasData) {
-                              final isInList = snapshot2.data;
-                              return Column(children: [
-                                FavoriteButton(
-                                  isFavorite: isInList,
-                                  iconSize: 30.0,
-                                  valueChanged: (_isFavorite) {
-                                    print('Is Favorite : $_isFavorite');
-                                    print(snapshot.data!.docs[index].id);
-                                    _modificar_producto_fav(
-                                        context,
-                                        _isFavorite,
-                                        snapshot.data!.docs[index].id);
-                                  },
-                                )
-                              ]);
-                            }
-                            return Container();
-                          },
+                        if(!widget.isAdmin)Expanded(
+                          child: FutureBuilder(
+                            future: es_fav(snapshot.data!.docs[index].id),
+                            builder:
+                                (BuildContext context, AsyncSnapshot snapshot2) {
+                              if (snapshot2.hasData) {
+                                final isInList = snapshot2.data;
+                                return Column(children: [
+                                  FavoriteButton(
+                                    isFavorite: isInList,
+                                    iconSize: 30.0,
+                                    valueChanged: (_isFavorite) {
+                                      print('Is Favorite : $_isFavorite');
+                                      print(snapshot.data!.docs[index].id);
+                                      _modificar_producto_fav(
+                                          context,
+                                          _isFavorite,
+                                          snapshot.data!.docs[index].id);
+                                    },
+                                  )
+                                ]);
+                              }
+                              return Container();
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ));
-          },
-        );
-      },
+                      ],
+                    ),
+                  ));
+            },
+          );
+        },
+      ),
+      floatingActionButton: _getAddButton(),
     );
+  }
+
+  Widget _getAddButton() {
+    if (!widget.isAdmin) {
+      return Container();
+    } else {
+      return FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => producto_form(isAdmin: widget.isAdmin))),
+        );
+    }
   }
 
   Future<bool> es_fav(String id_producto) async {

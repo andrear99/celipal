@@ -1,3 +1,5 @@
+// FORMULARIO DE CREAR PRODUCTO NUEVO
+
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,8 +19,7 @@ import 'package:path/path.dart' as Path;
 
 class producto_form extends StatefulWidget {
   bool isAdmin;
-  String id_producto;
-  producto_form({Key? key, required this.isAdmin, required this.id_producto})
+  producto_form({Key? key, required this.isAdmin})
       : super(key: key);
   @override
   State<producto_form> createState() => _producto_formState();
@@ -34,7 +35,7 @@ class _producto_formState extends State<producto_form> {
                 fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
       ),
       body: Container(
-        child: MyCustomForm(producto: widget.id_producto),
+        child: MyCustomForm(),
         padding: EdgeInsets.all(30.0),
       ),
     );
@@ -47,8 +48,7 @@ class _producto_formState extends State<producto_form> {
 }
 
 class MyCustomForm extends StatefulWidget {
-  String producto;
-  MyCustomForm({Key? key, required this.producto}) : super(key: key);
+  MyCustomForm({Key? key}) : super(key: key);
   @override
   MyCustomFormState createState() => MyCustomFormState();
 }
