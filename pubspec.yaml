@@ -78,6 +78,9 @@ flutter:
   assets:
      - assets/logo_celipal.png
      - assets/google.png
+     - assets/Lácteos.png
+     - assets/controladoporfacecabecera.png
+     - assets/Gluten.png
      - assets/
     
 

@@ -1,31 +1,22 @@
-// FORMULARIO DE CREAR PRODUCTO NUEVO
-
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
-import '../main.dart';
 import 'package:getwidget/getwidget.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:ffi';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path/path.dart' as Path;
 
-class producto_form extends StatefulWidget {
+class update_producto extends StatefulWidget {
   bool isAdmin;
-  producto_form({Key? key, required this.isAdmin})
+  QueryDocumentSnapshot producto;
+  update_producto({Key? key, required this.isAdmin, required this.producto})
       : super(key: key);
   @override
-  State<producto_form> createState() => _producto_formState();
+  State<update_producto> createState() => _update_productoState();
 }
 
-class _producto_formState extends State<producto_form> {
+class _update_productoState extends State<update_producto> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +26,7 @@ class _producto_formState extends State<producto_form> {
                 fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
       ),
       body: Container(
-        child: MyCustomForm(),
+        child: body_update_producto(producto: widget.producto,),
         padding: EdgeInsets.all(30.0),
       ),
     );
@@ -47,23 +38,24 @@ class _producto_formState extends State<producto_form> {
   }
 }
 
-class MyCustomForm extends StatefulWidget {
-  MyCustomForm({Key? key}) : super(key: key);
+class body_update_producto extends StatefulWidget {
+  final QueryDocumentSnapshot producto;
+  body_update_producto({Key? key, required this.producto}) : super(key: key);
   @override
-  MyCustomFormState createState() => MyCustomFormState();
+  body_update_productoState createState() => body_update_productoState();
 }
 
-class MyCustomFormState extends State<MyCustomForm> {
+class body_update_productoState extends State<body_update_producto> {
   int _len = 0;
 
-  final _nombre = TextEditingController();
-  final _descripcion = TextEditingController();
-  final _precio = TextEditingController();
-  final _marca = TextEditingController();
+  var _nombre = TextEditingController();
+  var _descripcion = TextEditingController();
+  var _precio = TextEditingController();
+  var _marca = TextEditingController();
 
 
-  List<bool> isCheckedAlergenos = [];
-  List<bool> isCheckedCategorias = [];
+  //List<bool> isCheckedAlergenos = [];
+  //List<bool> isCheckedCategorias = [];
   List<String> currencyItems = [];
   List<String> currencyChecksAlergenos = []; // LISTA COMPLETA DE NOMBRES DE ALÉRGENOS
   List<String> currencyChecksCategorias = []; // LISTA COMPLETA DE NOMBRES DE CATEGORÍAS
@@ -73,22 +65,37 @@ class MyCustomFormState extends State<MyCustomForm> {
 
   List<dynamic> listaAlergenos = []; // INDICES DE LOS ALERGENOS
   List<dynamic> listaCategorias = []; // INDICES DE LAS CATEGORIAS
+
+  List<dynamic> _listaFinalAlergenos = [];
+  List<dynamic> _listaFinalCategorias = [];
+
   var selected;
   bool face = false;
 
   File? _imageFile=null;
   String _urlImage = '';
   UploadTask? task;
-
-  // Crea una clave global que identificará de manera única el widget Form
-  // y nos permita validar el formulario
-  //
-  // Nota: Esto es un GlobalKey<FormState>, no un GlobalKey<MyCustomFormState>!
   final _formKey = GlobalKey<FormState>();
 
   @override
+    void initState() {
+      super.initState();
+      _get_original_data();
+    }
+  
+  void _get_original_data(){
+    _nombre.text = widget.producto.get('nombre');
+    _descripcion.text = widget.producto.get('descripcion');
+    _marca.text = widget.producto.get('marca');
+    _precio.text = widget.producto.get('precio_estimado');
+    _urlImage = widget.producto.get('imagen');
+    _listaFinalAlergenos = widget.producto.get('alergenos');
+    _listaFinalCategorias = widget.producto.get('categorias');
+    face = widget.producto.get('face');
+    }
+
+  @override
   Widget build(BuildContext context) {
-    // Crea un widget Form usando el _formKey que creamos anteriormente
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
@@ -173,10 +180,10 @@ class MyCustomFormState extends State<MyCustomForm> {
                   return CircularProgressIndicator();
                 } else {
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                    isCheckedAlergenos.add(false);
+                    //isCheckedAlergenos.add(false);
                     _len++;
                     currencyChecksAlergenos
-                        .add(snapshot.data!.docs.elementAt(i).get('nombre')); // para rellenar el selector
+                        .add(snapshot.data!.docs.elementAt(i).get('nombre'));
                     currencyChecksAlergenosIDs
                         .add(snapshot.data!.docs.elementAt(i).id);    
                   }
@@ -194,7 +201,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                                 listaAlergenos.addAll(value);
                                 ;
                               },
-                              dropdownTitleTileText: 'Selecciona una o varias',
+                              dropdownTitleTileText: !_listaFinalAlergenos.isEmpty ? 'Hay elementos seleccionados. Click para seleccionarlos de nuevo.' : 'Selecciona una o varias',
                               dropdownTitleTileColor: Colors.grey[200],
                               dropdownTitleTileMargin: EdgeInsets.only(
                                   top: 22, left: 18, right: 18, bottom: 5),
@@ -212,13 +219,6 @@ class MyCustomFormState extends State<MyCustomForm> {
                                 Icons.keyboard_arrow_up,
                                 color: Colors.black54,
                               ),
-                              submitButton: ElevatedButton(onPressed: (){
-                                listaAlergenos.forEach((index) {
-                                  // Lo que tenemos en ListaAlergenos son los indices de los elementos seleccionados, para acceder a ellos usamos esos indices
-                                  // para obtener los elementos de currencyCheckAlergenos de cada posicion corresp a los indices
-                                  print(currencyChecksAlergenos.elementAt(index));
-                                });
-                              }, child: Text("Aceptar"),),
                               dropdownTitleTileTextStyle: const TextStyle(
                                   fontSize: 14, color: Colors.black54),
                               padding: const EdgeInsets.all(6),
@@ -226,7 +226,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                               type: GFCheckboxType.basic,
                               activeBgColor: Colors.green.withOpacity(0.5),
                               inactiveBorderColor: Colors.grey[200]!,
-                              cancelButton: Text("Eliminar selección")),
+                              cancelButton: Text("Comenzar de nuevo"),),
                             ),
                           )
                         ],
@@ -244,7 +244,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                   return CircularProgressIndicator();
                 } else {
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                    isCheckedCategorias.add(false);
+                    //isCheckedCategorias.add(false);
                     _len++;
                     currencyChecksCategorias
                         .add(snapshot.data!.docs.elementAt(i).get('nombre'));
@@ -264,7 +264,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                                 listaCategorias.clear();
                                 listaCategorias.addAll(value);
                               },
-                              dropdownTitleTileText: 'Selecciona una o varias',
+                              dropdownTitleTileText: !_listaFinalCategorias.isEmpty ? 'Hay elementos seleccionados. Click para seleccionarlos de nuevo.' : 'Selecciona una o varias',
                               dropdownTitleTileColor: Colors.grey[200],
                               dropdownTitleTileMargin: EdgeInsets.only(
                                   top: 22, left: 18, right: 18, bottom: 5),
@@ -282,10 +282,6 @@ class MyCustomFormState extends State<MyCustomForm> {
                                 Icons.keyboard_arrow_up,
                                 color: Colors.black54,
                               ),
-                              submitButton: ElevatedButton(onPressed: (){
-                                print(currencyChecksCategorias.length);
-
-                              }, child: Text("Aceptar"),),
                               dropdownTitleTileTextStyle: const TextStyle(
                                   fontSize: 14, color: Colors.black54),
                               padding: const EdgeInsets.all(6),
@@ -293,7 +289,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                               type: GFCheckboxType.basic,
                               activeBgColor: Colors.green.withOpacity(0.5),
                               inactiveBorderColor: Colors.grey[200]!,
-                              cancelButton: Text("Eliminar selección")
+                              cancelButton: Text("Comenzar de nuevo"),
                             ),
                           ))
                         ],
@@ -334,13 +330,17 @@ class MyCustomFormState extends State<MyCustomForm> {
                       child: Icon(Icons.add_a_photo), 
                       onPressed: (){
                         _openGallery(context);
+                        
                       }, 
                       tooltip: "Añade una imagen",
                     ), 
                     SizedBox(height: 10,),
-                    if(_imageFile != null) 
+                    if(_imageFile != null || _urlImage!='') 
                       Row(children: [
-                        Text(Path.basename(_imageFile!.path)),
+                        Text('Imagen cargada'),
+                        SizedBox(
+                          width: 8,
+                        ),
                         Container(
                           height: 20.0,
                           width: 20.0,
@@ -351,6 +351,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                               onPressed: () {
                                 setState(() {
                                   _imageFile = null;
+                                  _urlImage = ''; 
                                 });
                               }),
                           ),
@@ -365,19 +366,13 @@ class MyCustomFormState extends State<MyCustomForm> {
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
               onPressed: () {
-                // devolverá true si el formulario es válido, o falso si
-                // el formulario no es válido.
-                print("holi");
                 _upload();
                 if (_formKey.currentState!.validate()) {
-                  // Si el formulario es válido, queremos mostrar un Snackbar
                   Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text('Producto creado con éxito.')));
+                      .showSnackBar(SnackBar(content: Text('Producto modificado con éxito.')));
                 }
               },
-              /*style: ElevatedButton.styleFrom(
-              alignment: Alignment.bottomCenter,),*/
-              child: Text('Crear Producto'),
+              child: Center(child: Text('Confirmar cambios'),)
             ),
           ),
         ],
@@ -386,32 +381,42 @@ class MyCustomFormState extends State<MyCustomForm> {
   }
 
 void _upload() async{
-  print(_urlImage);
-  List<String> _listaFinalAlergenos = [];
-  List<String> _listaFinalCategorias = [];
+  // En listaAlergenos estan los indices 
+  print(listaAlergenos.length);
+  print(listaCategorias.length);
+  if(!listaAlergenos.isEmpty){
+    _listaFinalAlergenos.clear();
+  }
+  if(!listaCategorias.isEmpty){
+    _listaFinalCategorias.clear();
+  }
   listaAlergenos.forEach((element) {_listaFinalAlergenos.add(currencyChecksAlergenosIDs[element]);});
-  listaCategorias.forEach((element) {_listaFinalCategorias.add(currencyChecksCategoriasIDs.elementAt(element));});
-
+  listaCategorias.forEach((element) {_listaFinalCategorias.add(currencyChecksCategoriasIDs[element]);});
   // Subimos el producto
   await uploadFile();
-  FirebaseFirestore.instance.collection('Producto').add(
-   {
-     "nombre" : _nombre.text,
-     "marca" : _marca.text,
-     "precio_estimado" : _precio.text,
-     "face" : face,
-     "descripcion" : _descripcion.text,
-     "imagen" : _urlImage,
-     "categorias" : _listaFinalCategorias,
-     "alergenos" : _listaFinalAlergenos
-   } 
-  ).then((value){
-     // Incluimos el producto en las categorias elegidas
-    _update_categorias(_listaFinalCategorias, value.id);
+  FirebaseFirestore.instance.collection('Producto')
+    .doc(widget.producto.id)
+    .update(
+      {
+        "nombre" : _nombre.text,
+        "marca" : _marca.text,
+        "precio_estimado" : _precio.text,
+        "face" : face,
+        "descripcion" : _descripcion.text,
+        "imagen" : _urlImage,
+        "categorias" : _listaFinalCategorias,
+        "alergenos" : _listaFinalAlergenos
+      } 
+    );
+    // Incluimos el producto en las categorias elegidas
+    _update_categorias(_listaFinalCategorias, widget.producto.id);
     // Incluimos el producto en los alergenos seleccionados
-    _update_alergenos(_listaFinalAlergenos, value.id);
-    print(value.id);});
-    Navigator.pop(context);
+    _update_alergenos(_listaFinalAlergenos, widget.producto.id);
+    setState(() {
+      Navigator.pop(context);
+      Navigator.pop(context);
+    });
+    
 }
 
 void _openGallery(BuildContext context) async{
@@ -434,13 +439,27 @@ void _openGallery(BuildContext context) async{
     final UploadTask uploadTask = ref.child(timeKey.toString()+".jpg").putFile(_imageFile!);
 
     var imageUrl = await (await uploadTask).ref.getDownloadURL(); 
-    _urlImage = imageUrl.toString();
-    print("holi" + _urlImage);
-    
+    _urlImage = imageUrl.toString();    
 }
 
-void _update_categorias(List<String> _listaFinalCategorias, String id){
-  _listaFinalCategorias.forEach((c) async { 
+void _update_categorias(List<dynamic> _listaFinalCategorias, String id){
+  _listaFinalCategorias.forEach((c) async {
+    // Quito el producto de todas las categorias donde antes estaba
+    final cat = await FirebaseFirestore.instance
+        .collection("Categoria")
+        .where("productos", arrayContains: id)
+        .get();
+
+    cat.docs.forEach((u) async {
+      await FirebaseFirestore.instance
+        .collection("Categoria")
+        .doc(u.id)
+        .update(
+          {
+            "productos": FieldValue.arrayRemove([id])
+          }
+        );
+    // Añado el producto a las categorias donde se ha elegido
     final categorias = await FirebaseFirestore.instance
         .collection("Categoria")
         .doc(c)
@@ -450,10 +469,26 @@ void _update_categorias(List<String> _listaFinalCategorias, String id){
           }
         );
   });
+  });
 }
 
-void _update_alergenos(List<String> _listaFinalAlergenos, String id){
+void _update_alergenos(List<dynamic> _listaFinalAlergenos, String id){
   _listaFinalAlergenos.forEach((c) async { 
+    // Quito el producto de todas las categorias donde antes estaba
+    final cat = await FirebaseFirestore.instance
+        .collection("Alergenos")
+        .where("productos", arrayContains: id)
+        .get();
+
+    cat.docs.forEach((u) async {
+      await FirebaseFirestore.instance
+        .collection("Alergenos")
+        .doc(u.id)
+        .update(
+          {
+            "productos": FieldValue.arrayRemove([id])
+          }
+        );
     final alergenos = await FirebaseFirestore.instance
         .collection("Alergenos")
         .doc(c)
@@ -463,8 +498,7 @@ void _update_alergenos(List<String> _listaFinalAlergenos, String id){
           }
         );
   });
+});
 }
-
 }
-
 
