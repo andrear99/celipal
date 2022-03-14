@@ -18,16 +18,14 @@ class _widget_productosState extends State<widget_productos> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final databaseReference = FirebaseFirestore.instance;
     return Scaffold(
       body: StreamBuilder(
-        stream: databaseReference.collection('Producto').snapshots(),
+        stream: firestoreInstance.collection('Producto').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
             return CircularProgressIndicator();
@@ -123,7 +121,6 @@ class _widget_productosState extends State<widget_productos> {
           res = false;
         } else {
             result.get('productos_fav').forEach((r) {
-              print(id_producto + ":" + r.toString());
               if (r.toString() == id_producto) {
                 print("EL PRODUCTO ESTÁ EN LA LISTA DE FAVORITOS.\n");
                 res = true;

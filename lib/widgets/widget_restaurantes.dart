@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../pages/restaurante.dart';
 import 'package:favorite_button/favorite_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../pages/get_restaurante.dart';
+
 
 class widget_restaurantes extends StatefulWidget {
   bool isAdmin;
@@ -14,74 +16,98 @@ class widget_restaurantes extends StatefulWidget {
 class _widget_restaurantesState extends State<widget_restaurantes> {
   final User? usuario = FirebaseAuth.instance.currentUser;
   final firestoreInstance = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final databaseReference = FirebaseFirestore.instance;
-    return StreamBuilder(
-      stream: databaseReference.collection('Restaurante').snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (!snapshot.hasData) {
-          return CircularProgressIndicator();
-        }
-        return ListView.builder(
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (BuildContext context, int index) {
-            return InkWell(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => restaurante_form()));
-                },
-                child: new Card(
-                  margin: EdgeInsets.all(10),
-                  child: new Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          children: [
-                            new Text(snapshot.data!.docs[index].get('nombre')),
-                            new Text(snapshot.data!.docs[index].get('direccion')),
-                            new Text(snapshot.data!.docs[index].get('direccion')),
-                          ],
+    return Scaffold(
+      body: StreamBuilder(
+        stream: firestoreInstance.collection('Restaurante').where('aprobado_admin', isEqualTo: true).snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) {
+            return CircularProgressIndicator();
+          }
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (BuildContext context, int index) {
+              return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => get_restaurante(isAdmin: widget.isAdmin, restaurante: snapshot.data!.docs[index],)));
+                  },
+                  child: new Card(
+                    margin: EdgeInsets.all(10),
+                    child: new Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Expanded(child: Image.network(snapshot.data!.docs[index].get('imagen')),),
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              new Text(snapshot.data!.docs[index].get('nombre')),
+                              new Text(snapshot.data!.docs[index].get('direccion')),
+                              new Text(snapshot.data!.docs[index].get('rango_precio').toString()),
+                            ],
+                          ),
                         ),
-                      ),
-                      if(!widget.isAdmin)Expanded(
-                        child: FutureBuilder(
-                          future: es_fav(snapshot.data!.docs[index].id),
-                          builder:
-                              (BuildContext context, AsyncSnapshot snapshot2) {
-                            if (snapshot2.hasData) {
-                              final isInList = snapshot2.data;
-                              return Column(children: [
-                                FavoriteButton(
-                                  isFavorite: isInList,
-                                  iconSize: 30.0,
-                                  valueChanged: (_isFavorite) {
-                                    print('Is Favorite : $_isFavorite');
-                                    print(snapshot.data!.docs[index].id);
-                                    _modificar_restaurante_fav(
-                                        context,
-                                        _isFavorite,
-                                        snapshot.data!.docs[index].id);
-                                  },
-                                )
-                              ]);
-                            }
-                            return Container();
-                          },
+                        if(!widget.isAdmin)Expanded(
+                          child: FutureBuilder(
+                            future: es_fav(snapshot.data!.docs[index].id),
+                            builder:
+                                (BuildContext context, AsyncSnapshot snapshot2) {
+                              if (snapshot2.hasData) {
+                                final isInList = snapshot2.data;
+                                return Column(children: [
+                                  FavoriteButton(
+                                    isFavorite: isInList,
+                                    iconSize: 30.0,
+                                    valueChanged: (_isFavorite) {
+                                      print('Is Favorite : $_isFavorite');
+                                      print(snapshot.data!.docs[index].id);
+                                      _modificar_restaurante_fav(
+                                          context,
+                                          _isFavorite,
+                                          snapshot.data!.docs[index].id);
+                                    },
+                                  )
+                                ]);
+                              }
+                              return Container();
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ));
-          },
-        );
-      },
+                      ],
+                    ),
+                  ));
+            },
+          );
+        },
+      ),
+      floatingActionButton: _getAddButton(),
     );
   }
+  Widget _getAddButton() {
+    if (!widget.isAdmin) {
+      return Container();
+    } else {
+      return FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => restaurante_form(isAdmin: widget.isAdmin))),
+        );
+    }
+  }
+
+
 
   Future<bool> es_fav(String id_restaurante) async {
     bool res = false;
@@ -102,6 +128,8 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
               if (r.toString() == id_restaurante) {
                 print("EL RESTAURANTE ESTÁ EN LA LISTA DE FAVORITOS.\n");
                 res = true;
+              }else{
+                return false;
               }
             });
           }
@@ -140,3 +168,4 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
     }
   }
 }
+
