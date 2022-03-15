@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'update_producto.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class get_restaurante extends StatefulWidget {
   bool isAdmin;
@@ -23,6 +24,7 @@ class _get_restauranteState extends State<get_restaurante> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 239, 241, 245),
       appBar: AppBar(
         title: Text('BIENVENIDO A CELIPAL - TU AMIGO CELIACO',
             style: TextStyle(
@@ -71,17 +73,20 @@ class _body_get_restauranteState extends State<body_get_restaurante> {
                 ),
             child: Column(
             children: [
-              Image.network(
+              ClipRRect(
+                borderRadius: BorderRadius.circular(30.0),
+                child: Image.network(
                 widget.restaurante.get('imagen'),
                 height: MediaQuery.of(context).size.height * 0.4,
                 fit: BoxFit.cover,
+              )
               ),
               const SizedBox(height: 16.0 * 1.5),
               Container(
                   padding: const EdgeInsets.fromLTRB(16.0,
                       16.0 * 2, 16.0, 16.0),
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 255, 255, 255),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(12.0 * 3),
                       topRight: Radius.circular(12.0 * 3),
@@ -89,27 +94,57 @@ class _body_get_restauranteState extends State<body_get_restaurante> {
                   ),
                   child: 
                   Column(
-                     mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          
                             Text(
                               widget.restaurante.get('nombre'),
                               style: Theme.of(context).textTheme.headline6,
                             ),
-                          
-                          const SizedBox(width: 16.0),
-                          Text(
-                            "\$" + widget.restaurante.get('rango_precio').toString(),
-                            style: Theme.of(context).textTheme.headline6,
-                          ),                          
+                          const SizedBox(width: 70.0),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                            SizedBox(
+                              height: 30,
+                              child: 
+                              ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                shrinkWrap: true,
+                                itemBuilder: (BuildContext ctx, int index) {
+                                  return Icon(Icons.monetization_on, color: Color.fromARGB(255, 243, 195, 38),);
+                                },
+                                itemCount: widget.restaurante.get('rango_precio'),
+                              ),
+                            ), 
+                          ],)
                         ],
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(vertical: 16.0),
                         child: Text(widget.restaurante.get('descripcion')),
+                      ),
+                      Container(
+                        alignment: Alignment.bottomLeft,
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        child: Text(widget.restaurante.get('direccion')),
+                      ),
+                      Container(
+                        alignment: Alignment.bottomLeft,
+                        child: Text('Contacto', style: Theme.of(context).textTheme.bodyLarge),
+                      ),
+                      Container(
+                        alignment: Alignment.bottomLeft,
+                        padding: EdgeInsets.symmetric(vertical: 10.0),
+                        child:
+                          new RaisedButton(
+                            onPressed:() {
+                              _launchURL(widget.restaurante.get('sitio_web'));
+                            },
+                            child: new Text('Sitio web del local'),
+                          ),
                       ),
                       if(widget.isAdmin) Container(
                         alignment: Alignment.center,
@@ -215,5 +250,13 @@ class _body_get_restauranteState extends State<body_get_restaurante> {
     Navigator.pop(context);
   });
   }
+
+void _launchURL(String url) async {
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
 }
 

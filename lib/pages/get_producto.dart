@@ -23,6 +23,7 @@ class _get_productoState extends State<get_producto> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 239, 241, 245),
       appBar: AppBar(
         title: Text('BIENVENIDO A CELIPAL - TU AMIGO CELIACO',
             style: TextStyle(
@@ -73,10 +74,13 @@ class _body_get_productoState extends State<body_get_producto> {
                 ),
             child: Column(
             children: [
-              Image.network(
+              ClipRRect(
+                borderRadius: BorderRadius.circular(30.0),
+                child: Image.network(
                 widget.producto.get('imagen'),
                 height: MediaQuery.of(context).size.height * 0.4,
                 fit: BoxFit.cover,
+              )
               ),
               const SizedBox(height: 16.0 * 1.5),
               Container(
