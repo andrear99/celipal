@@ -121,18 +121,16 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
         if (result.get('restaurantes_fav').toString() == '[]') {
           print(
               "LA LISTA ESTÁ VACÍA. EL RESTAURANTE NO ESTÁ EN LA LISTA DE FAVORITOS.\n");
-          //res =false;
+          res = false;
         } else {
-          while (res == false) {
-            result.get('restaurantes_fav').forEach((r) {
+          result.get('restaurantes_fav').forEach((r) {
               if (r.toString() == id_restaurante) {
                 print("EL RESTAURANTE ESTÁ EN LA LISTA DE FAVORITOS.\n");
                 res = true;
               }else{
                 return false;
               }
-            });
-          }
+            }); 
         }
         widget.isAdmin = result.get('isAdmin');
       },

@@ -5,27 +5,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path/path.dart' as Path;
 
-class restaurante_form extends StatefulWidget {
+class update_restaurante extends StatefulWidget {
   bool isAdmin;
-  restaurante_form({Key? key, required this.isAdmin}) : super(key: key);
-
+  QueryDocumentSnapshot restaurante;
+  update_restaurante({Key? key, required this.isAdmin, required this.restaurante})
+      : super(key: key);
   @override
-  State<restaurante_form> createState() => _restaurante_formState();
+  State<update_restaurante> createState() => _update_restauranteState();
 }
 
-class _restaurante_formState extends State<restaurante_form> {
+class _update_restauranteState extends State<update_restaurante> {
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text('BIENVENIDO A CELIPAL - TU AMIGO CELIACO',
-              style: TextStyle(
-                  fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
-        ),
+            style: TextStyle(
+                fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
+      ),
       body: Container(
-        child: MyCustomForm(),
+        child: body_update_restaurante(restaurante: widget.restaurante),
         padding: EdgeInsets.all(30.0),
       ),
     );
@@ -37,35 +37,55 @@ class _restaurante_formState extends State<restaurante_form> {
   }
 }
 
-class MyCustomForm extends StatefulWidget {
-  MyCustomForm({Key? key}) : super(key: key);
+class body_update_restaurante extends StatefulWidget {
+  final QueryDocumentSnapshot restaurante;
+  body_update_restaurante({Key? key, required this.restaurante}) : super(key: key);
   @override
-  MyCustomFormState createState() => MyCustomFormState();
+  body_update_restauranteState createState() => body_update_restauranteState();
 }
 
-class MyCustomFormState extends State<MyCustomForm> {
+class body_update_restauranteState extends State<body_update_restaurante> {
   int _len = 0;
 
-  final _nombre = TextEditingController();
-  final _descripcion = TextEditingController();
-  final _direccion = TextEditingController();
-  var _rango_precio; // del 1 al 5
-  final _sitio_web = TextEditingController();
-  final _contacto = TextEditingController();
-  final _aprobado_admin = true;
-  var selectedProvincia;
-  File? _imageFile=null;
-  String _urlImage = '';
-  UploadTask? task;
+  var _nombre = TextEditingController();
+  var _descripcion = TextEditingController();
+  var _rango_precio;
+  var _aprobado_admin = true;
+  var _contacto = TextEditingController();
+  var _direccion = TextEditingController();
+  var _sitio_web = TextEditingController();
+  var _provincia;
 
   List<int> rango = [1,2,3,4,5];
 
-  List<bool> isCheckedEspecialidades = [];
+  List<String> currencyItems = [];
   List<String> currencyChecksEspecialidades = []; // LISTA COMPLETA DE NOMBRES DE ALÉRGENOS
   List<String> currencyChecksEspecialidadesIDs = [];
   List<dynamic> listaEspecialidades = []; // INDICES DE LOS ALERGENOS
-  var selected;
+  List<dynamic> _listaFinalEspecialidades = [];
+
+  File? _imageFile=null;
+  String _urlImage = '';
+  UploadTask? task;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+    void initState() {
+      super.initState();
+      _get_original_data();
+    }
+  
+  void _get_original_data(){
+    _nombre.text = widget.restaurante.get('nombre');
+    _descripcion.text = widget.restaurante.get('descripcion');
+    _contacto.text = widget.restaurante.get('contacto');
+    _urlImage = widget.restaurante.get('imagen');
+    _listaFinalEspecialidades = widget.restaurante.get('especialidades');
+    _direccion.text = widget.restaurante.get('direccion');
+    _sitio_web.text = widget.restaurante.get('sitio_web');
+    _rango_precio = widget.restaurante.get('rango_precio');
+    _provincia = widget.restaurante.get('provincia');
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -114,32 +134,47 @@ class MyCustomFormState extends State<MyCustomForm> {
               }
             },
           ),
-          SizedBox(height: 10,),
+          SizedBox(height: 10),
           TextFormField(
             controller: _sitio_web,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              hintText: 'Sitio Web',
+              hintText: 'Sitio web',
             ),
             validator: (value) {
               if (value!.isEmpty) {
-                return 'Introduzca el sitio web del local.';
+                return 'Introduzca el sitio web.';
               }
             },
           ),
           SizedBox(height: 10),
           Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Expanded(
-                child: Container(
-                  width: 60,
-                  child: 
-                  DropdownButton(
+              Container(
+                width: 120,
+                child:
+                TextFormField(
+                controller: _contacto,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Teléfono',
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Introduzca el teléfono de contacto.';
+                  }
+                },
+              ),
+              ),
+              SizedBox(width: 20,),
+              DropdownButton(
                   items: rango
                       .map((value) => DropdownMenuItem(
                             child: Text(
                               value.toString(),
-                              style: TextStyle(fontSize: 16),
+                              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                             ),
                             value: value,
                           ))
@@ -153,33 +188,13 @@ class MyCustomFormState extends State<MyCustomForm> {
                   value: _rango_precio,
                   isExpanded: false,
                   hint: Text(
-                    'Rango de precios',
-                    style: TextStyle(fontSize: 16),
-                  ),
-              ),
-                ),
-              ),
-              SizedBox(width: 10),
-              Container(
-                  width: 150,
-                  child: TextFormField(
-                    controller: _contacto,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Teléfono de contacto',
-                    ),
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Escriba el teléfono de contacto';
-                      }
-                    },
+                    'Elige rango de precios',
+                    style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                   ),
               ),
             ],
           ),
-          SizedBox(height: 10,),
-           StreamBuilder<QuerySnapshot>(
+          StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection("Provincia").snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData)
@@ -215,10 +230,10 @@ class MyCustomFormState extends State<MyCustomForm> {
                               );
                               Scaffold.of(context).showSnackBar(snackBar);
                               setState(() {
-                                selectedProvincia = currencyValue;
+                                _provincia = currencyValue;
                               });
                             },
-                            value: selectedProvincia,
+                            value: _provincia,
                             isExpanded: false,
                             hint: new Text(
                               "Selecciona una"
@@ -239,18 +254,17 @@ class MyCustomFormState extends State<MyCustomForm> {
                   return CircularProgressIndicator();
                 } else {
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                    isCheckedEspecialidades.add(false);
                     _len++;
                     currencyChecksEspecialidades
-                        .add(snapshot.data!.docs.elementAt(i).get('nombre')); // para rellenar el selector
+                        .add(snapshot.data!.docs.elementAt(i).get('nombre'));
                     currencyChecksEspecialidadesIDs
                         .add(snapshot.data!.docs.elementAt(i).id);    
                   }
                   return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text("Especialidades:", style: TextStyle(fontSize: 16)), 
                         Expanded(
+                          flex: 1,
                           child: Container(
                             child: GFMultiSelect(
                               items: currencyChecksEspecialidades,
@@ -260,7 +274,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                                 listaEspecialidades.addAll(value);
                                 ;
                               },
-                              dropdownTitleTileText: 'Selecciona una o varias',
+                              dropdownTitleTileText: !_listaFinalEspecialidades.isEmpty ? 'Hay elementos seleccionados. Click para seleccionarlos de nuevo.' : 'Selecciona una o varias',
                               dropdownTitleTileColor: Colors.grey[200],
                               dropdownTitleTileMargin: EdgeInsets.only(
                                   top: 22, left: 18, right: 18, bottom: 5),
@@ -278,13 +292,6 @@ class MyCustomFormState extends State<MyCustomForm> {
                                 Icons.keyboard_arrow_up,
                                 color: Colors.black54,
                               ),
-                              submitButton: ElevatedButton(onPressed: (){
-                                listaEspecialidades.forEach((index) {
-                                  // Lo que tenemos en ListaAlergenos son los indices de los elementos seleccionados, para acceder a ellos usamos esos indices
-                                  // para obtener los elementos de currencyCheckAlergenos de cada posicion corresp a los indices
-                                  print(currencyChecksEspecialidades.elementAt(index));
-                                });
-                              }, child: Text("Aceptar"),),
                               dropdownTitleTileTextStyle: const TextStyle(
                                   fontSize: 14, color: Colors.black54),
                               padding: const EdgeInsets.all(6),
@@ -292,16 +299,16 @@ class MyCustomFormState extends State<MyCustomForm> {
                               type: GFCheckboxType.basic,
                               activeBgColor: Colors.green.withOpacity(0.5),
                               inactiveBorderColor: Colors.grey[200]!,
-                              cancelButton: Text("Eliminar selección")),
+                              cancelButton: Text("Comenzar de nuevo"),),
                             ),
                           )
                         ],
-                    );
+                    )
+                  ;
                 }
               },
             ),
           SizedBox(height: 40,),
-         
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -316,9 +323,12 @@ class MyCustomFormState extends State<MyCustomForm> {
                       tooltip: "Añade una imagen",
                     ), 
                     SizedBox(height: 10,),
-                    if(_imageFile != null) 
+                    if(_imageFile != null || _urlImage!='') 
                       Row(children: [
-                        Text(Path.basename(_imageFile!.path)),
+                        Text('Imagen cargada'),
+                        SizedBox(
+                          width: 8,
+                        ),
                         Container(
                           height: 20.0,
                           width: 20.0,
@@ -329,6 +339,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                               onPressed: () {
                                 setState(() {
                                   _imageFile = null;
+                                  _urlImage = ''; 
                                 });
                               }),
                           ),
@@ -346,10 +357,10 @@ class MyCustomFormState extends State<MyCustomForm> {
                 _upload();
                 if (_formKey.currentState!.validate()) {
                   Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text('Local creado con éxito.')));
+                      .showSnackBar(SnackBar(content: Text('Local modificado con éxito.')));
                 }
               },
-              child: Center(child: Text('Añadir local'))
+              child: Center(child: Text('Confirmar cambios'),)
             ),
           ),
         ],
@@ -358,31 +369,38 @@ class MyCustomFormState extends State<MyCustomForm> {
   }
 
 void _upload() async{
-  print(_urlImage);
-  List<String> _listaFinalEspecialidades = [];
+  // En listaEspecialidades estan los indices 
+  if(!listaEspecialidades.isEmpty){
+    _listaFinalEspecialidades.clear();
+  }
+ 
   listaEspecialidades.forEach((element) {_listaFinalEspecialidades.add(currencyChecksEspecialidadesIDs[element]);});
-
   // Subimos el local
   await uploadFile();
-  FirebaseFirestore.instance.collection('Restaurante').add(
-   {
-     "nombre" : _nombre.text,
-     "direccion" : _direccion.text,
-     "rango_precio" : _rango_precio,
-     "sitio_web" : _sitio_web.text,
-     "descripcion" : _descripcion.text,
-     "imagen" : _urlImage,
-     "contacto" : _contacto.text,
-     "especialidades" : _listaFinalEspecialidades,
-     "provincia": selectedProvincia,
-     "aprobado_admin": _aprobado_admin
-   } 
-  ).then((value){
-    // Incluimos el local en las especialidades y provincia seleccionados
-    _update_especialidades(_listaFinalEspecialidades, value.id);
-    _update_provincias(selectedProvincia, value.id);
-    print(value.id);});
-    Navigator.pop(context);
+  FirebaseFirestore.instance.collection('Restaurante')
+    .doc(widget.restaurante.id)
+    .update(
+      {
+        "nombre" : _nombre.text,
+        "aprobado_admin" : _aprobado_admin,
+        "direccion" : _direccion.text,
+        "contacto" : _contacto.text,
+        "sitio_web" : _sitio_web.text,
+        "rango_precio" : _rango_precio,
+        "descripcion" : _descripcion.text,
+        "imagen" : _urlImage,
+        "especialidades" : _listaFinalEspecialidades,
+        "provincia" : _provincia,
+      } 
+    );
+    // Incluimos el local en los alergenos seleccionados
+    _update_especialidades(_listaFinalEspecialidades, widget.restaurante.id);
+    _update_provincias(_provincia, widget.restaurante.id);
+    setState(() {
+      Navigator.pop(context);
+      Navigator.pop(context);
+    });
+    
 }
 
 void _openGallery(BuildContext context) async{
@@ -405,12 +423,26 @@ void _openGallery(BuildContext context) async{
     final UploadTask uploadTask = ref.child(timeKey.toString()+".jpg").putFile(_imageFile!);
 
     var imageUrl = await (await uploadTask).ref.getDownloadURL(); 
-    _urlImage = imageUrl.toString();
-    
+    _urlImage = imageUrl.toString();    
 }
 
-void _update_especialidades(List<String> _listaFinalEspecialidades, String id){
+void _update_especialidades(List<dynamic> _listaFinalEspecialidades, String id){
   _listaFinalEspecialidades.forEach((c) async { 
+    // Quito el local de todas las categorias donde antes estaba
+    final cat = await FirebaseFirestore.instance
+        .collection("Especialidad")
+        .where("locales", arrayContains: id)
+        .get();
+
+    cat.docs.forEach((u) async {
+      await FirebaseFirestore.instance
+        .collection("Especialidad")
+        .doc(u.id)
+        .update(
+          {
+            "locales": FieldValue.arrayRemove([id])
+          }
+        );
     await FirebaseFirestore.instance
         .collection("Especialidad")
         .doc(c)
@@ -420,10 +452,26 @@ void _update_especialidades(List<String> _listaFinalEspecialidades, String id){
           }
         );
   });
+});
 }
 
 Future<void> _update_provincias(String provincia, String id) async {
-    await FirebaseFirestore.instance
+  final cat = await FirebaseFirestore.instance
+        .collection("Provincia")
+        .where("locales", arrayContains: id)
+        .get();
+
+    cat.docs.forEach((u) async {
+      await FirebaseFirestore.instance
+        .collection("Provincia")
+        .doc(u.id)
+        .update(
+          {
+            "locales": FieldValue.arrayRemove([id])
+          }
+        );
+
+      await FirebaseFirestore.instance
         .collection("Provincia")
         .doc(provincia)
         .update(
@@ -431,8 +479,7 @@ Future<void> _update_provincias(String provincia, String id) async {
             "locales": FieldValue.arrayUnion([id])
           }
         );
-  }
+    });
 }
-
-
+}
 
