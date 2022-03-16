@@ -375,7 +375,8 @@ void _upload() async{
      "contacto" : _contacto.text,
      "especialidades" : _listaFinalEspecialidades,
      "provincia": selectedProvincia,
-     "aprobado_admin": _aprobado_admin
+     "aprobado_admin": _aprobado_admin,
+     "valoraciones" : []
    } 
   ).then((value){
     // Incluimos el local en las especialidades y provincia seleccionados

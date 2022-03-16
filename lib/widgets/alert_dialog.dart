@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class name extends StatefulWidget {
   name({Key? key}) : super(key: key);
 
@@ -9,12 +8,9 @@ class name extends StatefulWidget {
 }
 
 class _nameState extends State<name> {
-  openAlertBox() {
-    return showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return 
-              AlertDialog(
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
                 scrollable: true,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(32.0))),
@@ -73,14 +69,6 @@ class _nameState extends State<name> {
                   ],
                 ),
               ),
-            );
-        }
-      );
-    }
-
-  @override
-  Widget build(BuildContext context) {
-    return openAlertBox();
+            );;
   }
 }
-

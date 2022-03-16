@@ -55,6 +55,7 @@ class body_update_restauranteState extends State<body_update_restaurante> {
   var _direccion = TextEditingController();
   var _sitio_web = TextEditingController();
   var _provincia;
+  List<dynamic> _valoraciones = [];
 
   List<int> rango = [1,2,3,4,5];
 
@@ -85,6 +86,8 @@ class body_update_restauranteState extends State<body_update_restaurante> {
     _sitio_web.text = widget.restaurante.get('sitio_web');
     _rango_precio = widget.restaurante.get('rango_precio');
     _provincia = widget.restaurante.get('provincia');
+    _valoraciones = widget.restaurante.get('valoraciones');
+
     }
 
   @override
@@ -391,6 +394,7 @@ void _upload() async{
         "imagen" : _urlImage,
         "especialidades" : _listaFinalEspecialidades,
         "provincia" : _provincia,
+        "valoraciones" : _valoraciones,
       } 
     );
     // Incluimos el local en los alergenos seleccionados
