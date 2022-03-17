@@ -25,20 +25,17 @@ class _restaurante_formState extends State<restaurante_form> {
                   fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
         ),
       body: Container(
-        child: MyCustomForm(),
+        child: MyCustomForm(isAdmin: widget.isAdmin),
         padding: EdgeInsets.all(30.0),
       ),
     );
   }
 
-  void _salir(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pop(context);
-  }
 }
 
 class MyCustomForm extends StatefulWidget {
-  MyCustomForm({Key? key}) : super(key: key);
+  bool isAdmin;
+  MyCustomForm({Key? key, required this.isAdmin}) : super(key: key);
   @override
   MyCustomFormState createState() => MyCustomFormState();
 }
@@ -52,7 +49,7 @@ class MyCustomFormState extends State<MyCustomForm> {
   var _rango_precio; // del 1 al 5
   final _sitio_web = TextEditingController();
   final _contacto = TextEditingController();
-  final _aprobado_admin = true;
+  var _aprobado_admin = true;
   var selectedProvincia;
   File? _imageFile=null;
   String _urlImage = '';
@@ -69,6 +66,7 @@ class MyCustomFormState extends State<MyCustomForm> {
 
   @override
   Widget build(BuildContext context) {
+    _aprobado_admin = widget.isAdmin;
     return SingleChildScrollView(
       child: Form(
         key: _formKey,

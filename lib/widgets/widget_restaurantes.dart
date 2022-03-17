@@ -96,7 +96,16 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
   }
   Widget _getAddButton() {
     if (!widget.isAdmin) {
-      return Container();
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: StadiumBorder(),
+        ),
+        child: Text("¿Conoces algún local? ¡Envíanoslo!"),
+        onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => restaurante_form(isAdmin: widget.isAdmin))),
+        );
     } else {
       return FloatingActionButton(
         child: Icon(Icons.add),
