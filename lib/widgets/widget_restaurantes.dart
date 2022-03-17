@@ -16,6 +16,7 @@ class widget_restaurantes extends StatefulWidget {
 class _widget_restaurantesState extends State<widget_restaurantes> {
   final User? usuario = FirebaseAuth.instance.currentUser;
   final firestoreInstance = FirebaseFirestore.instance;
+  String ID = '';
 
   @override
   void initState() {
@@ -39,7 +40,7 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (BuildContext context) => get_restaurante(isAdmin: widget.isAdmin, restaurante: snapshot.data!.docs[index],)));
+                            builder: (BuildContext context) => get_restaurante(isAdmin: widget.isAdmin, restaurante: snapshot.data!.docs[index])));
                   },
                   child: new Card(
                     margin: EdgeInsets.all(10),
@@ -141,7 +142,7 @@ class _widget_restaurantesState extends State<widget_restaurantes> {
   void _modificar_restaurante_fav(
       BuildContext context, bool is_fav, restaurante) async {
     // elimino o añado el restaurante de favoritos
-    String ID = '';
+    
     final value = await firestoreInstance
         .collection("Usuario")
         .where("email", isEqualTo: usuario!.email)

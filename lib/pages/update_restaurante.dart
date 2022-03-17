@@ -31,10 +31,6 @@ class _update_restauranteState extends State<update_restaurante> {
     );
   }
 
-  void _salir(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pop(context);
-  }
 }
 
 class body_update_restaurante extends StatefulWidget {

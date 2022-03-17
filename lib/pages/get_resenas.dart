@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/alert_dialog.dart';
+
+
 
 class get_resenas extends StatefulWidget {
   QueryDocumentSnapshot restaurante;
@@ -27,6 +28,10 @@ class _get_resenasState extends State<get_resenas> {
       floatingActionButton: 
         FloatingActionButton.extended(
         onPressed: () {
+          showDialog(
+            context: context,
+            builder: (_) => alert_dialog(restaurante: widget.restaurante)
+          );
         },
         label: Text('¡Escribe tu reseña!', style: GoogleFonts.montserrat(fontSize: 15)),
         icon: const Icon(Icons.reviews_rounded),
@@ -46,6 +51,9 @@ class body_get_resena extends StatefulWidget {
 }
 
 class _body_get_resenaState extends State<body_get_resena> {
+  final firestoreInstance = FirebaseFirestore.instance;
+  List<DocumentSnapshot> resenias = [];
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -59,7 +67,7 @@ class _body_get_resenaState extends State<body_get_resena> {
                       height: 50,
                       alignment: Alignment.topCenter,
                       child: 
-                        Text("Reseñas&Valoraciones", style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.bold)),
+                        Text("Reseñas&Valoraciones", style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.bold)),
                 ),
                 Container(
                       width: 200,
@@ -82,7 +90,13 @@ class _body_get_resenaState extends State<body_get_resena> {
                         children: <Widget>[
                           Column(
                               children: [
-                                Text(widget.nota.toString(), style: GoogleFonts.montserrat(fontSize: 50, fontWeight: FontWeight.bold),),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(widget.nota.toString(), style: GoogleFonts.montserrat(fontSize: 50, fontWeight: FontWeight.bold),),
+                                    Icon(Icons.star, color: Colors.amber, size: 50,)
+                                  ],
+                                ),
                                 Text(widget.n_valoraciones.toString() + ' reseñas', style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.normal),)
                               ],
                             )
@@ -92,36 +106,75 @@ class _body_get_resenaState extends State<body_get_resena> {
               ]
             ),
             DraggableScrollableSheet(
-                  initialChildSize: 0.5,
+                  initialChildSize: 0.4,
                   minChildSize: 0.2,
                   maxChildSize: 1,
                   builder: (BuildContext context, ScrollController scrollController) {
                     return 
-                    Padding(
-                      padding: EdgeInsets.all(5),
-                      child: 
-                        Container(
-                          decoration: const BoxDecoration(
-                            color: Color.fromARGB(255, 255, 255, 255),
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(8),
-                              topRight: Radius.circular(8),
-                            ),
-                          ),
-                          child: Scrollbar(
-                            child: ListView.builder(
-                              controller: scrollController,
-                              itemCount: 25,
-                              itemBuilder: (BuildContext context, int index) {
-                                return ListTile(
-                                  leading: const Icon(Icons.ac_unit),
-                                  title: Text('Item $index'),
+                    StreamBuilder(
+                      stream: firestoreInstance.collection('Valoracion_Restaurante').where('restaurante', isEqualTo: widget.restaurante.id).snapshots(),
+                      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+                          if (!snapshot.hasData) {
+                          return new CircularProgressIndicator();
+                          }
+                            return 
+                              Material(
+                                elevation: 10,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(30)
+                                      ),
+                                child: 
+                                  Column(
+                                    children: [
+                                      SizedBox(height: 20,),
+                                      Divider(color: Colors.grey, thickness: 3, indent: 100, endIndent: 100,),
+                                      SizedBox(height: 20,),
+                                      Expanded(
+                                        child:
+                                            ListView.builder(
+                                              controller: scrollController,
+                                              itemCount: snapshot.data!.docs.length,
+                                              itemBuilder: (BuildContext context, int index) {
+                                                return Container(
+                                                  padding: EdgeInsets.all(6),
+                                                  child:
+                                                    Container(
+                                                      height: 100,
+                                                      width: 100,
+                                                      child:
+                                                        Card( 
+                                                          elevation:5,
+                                                          margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(10.0),
+                                                          ),
+                                                          child: new Row(
+                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                            children: <Widget>[
+                                                              //Expanded(child: Image.network(snapshot.data!.docs[index].get('imagen')),),
+                                                              Expanded(
+                                                                //flex: 2,
+                                                                child: Column(
+                                                                  children: [
+                                                                    new Text(snapshot.data!.docs[index].get('comentario'), textAlign: TextAlign.justify,),
+                                                                    new Text(snapshot.data!.docs[index].get('nota').toString()),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                    )
+                                                );
+                                              },
+                                            ),
+                                        )
+                                    ]
+                                  )
                                 );
-                              },
-                            ),
-                          ),
-                        )
-                      ); 
+                        }
+                    );
                   },
               )     
       ],

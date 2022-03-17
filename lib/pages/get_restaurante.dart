@@ -29,7 +29,7 @@ class _get_restauranteState extends State<get_restaurante> {
       appBar: AppBar(
       ),
       body: Container(
-        child: body_get_restaurante(restaurante: widget.restaurante, isAdmin: widget.isAdmin, alergenos: []),
+        child: body_get_restaurante(restaurante: widget.restaurante, isAdmin: widget.isAdmin),
         padding: EdgeInsets.all(30.0),
       ),
     );
@@ -38,9 +38,8 @@ class _get_restauranteState extends State<get_restaurante> {
 
 class body_get_restaurante extends StatefulWidget {
   bool isAdmin;
-  List alergenos = [];
   QueryDocumentSnapshot restaurante;
-  body_get_restaurante({Key? key, required this.restaurante, required this.isAdmin, required this.alergenos}) : super(key: key);
+  body_get_restaurante({Key? key, required this.restaurante, required this.isAdmin}) : super(key: key);
   @override
   State<body_get_restaurante> createState() => _body_get_restauranteState();
 }
@@ -113,7 +112,7 @@ class _body_get_restauranteState extends State<body_get_restaurante> {
                               Row(
                                 children: [
                                   SizedBox(
-                                    width: 230,
+                                    width: 200,
                                   ),
                                   TextButton(
                                     style: ButtonStyle(
@@ -356,10 +355,11 @@ Future<void> _get_valoracion_media(QueryDocumentSnapshot r) async {
   n_valoraciones = id_valoraciones.length;
   print(n_valoraciones);
   if(!id_valoraciones.isEmpty){
-    List<double> nota_valoraciones = [];
+    List<num> nota_valoraciones = [];
     for (var v in id_valoraciones) {
       await firestoreInstance.collection('Valoracion_Restaurante').doc(v).get().then((value) { 
-      nota_valoraciones.add(value.get('nota'));
+      num i = value.get('nota');
+      nota_valoraciones.add(i.toDouble());
       });
     }
     nota_valoraciones.forEach((n) =>valoracion_media+=n);
