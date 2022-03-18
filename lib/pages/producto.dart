@@ -390,7 +390,7 @@ void _upload() async{
    {
      "nombre" : _nombre.text,
      "marca" : _marca.text,
-     "precio_estimado" : _precio.text,
+     "precio_estimado" : double.parse(_precio.text),
      "face" : face,
      "descripcion" : _descripcion.text,
      "imagen" : _urlImage,

@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smooth_star_rating/smooth_star_rating.dart';
+import '../widgets/star_rating.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class alert_dialog extends StatefulWidget {
   final User? usuario = FirebaseAuth.instance.currentUser;
@@ -79,25 +80,26 @@ class _alert_dialogState extends State<alert_dialog> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               SizedBox(height: 10),
-              SmoothStarRating(
-                rating: rating,
-                size: 35,
-                filledIconData: Icons.star,
-                halfFilledIconData: Icons.star_half,
-                defaultIconData: Icons.star_border,
-                starCount: 5,
-                allowHalfRating: true,
-                spacing: 2.0,
-                color: Colors.amber,
-                borderColor: Colors.grey,
-
-                onRated: (value) {
-                  setState(() {
-                    rating = value;
-                    print(rating);
-                  });
-                },
-              ),
+              RatingBar(
+                    initialRating: 0,
+                    direction: Axis.horizontal,
+                    allowHalfRating: true,
+                    itemCount: 5,
+                    ratingWidget: RatingWidget(
+                        full: const Icon(Icons.star, color: Colors.orange),
+                        half: const Icon(
+                          Icons.star_half,
+                          color: Colors.orange,
+                        ),
+                        empty: const Icon(
+                          Icons.star_outline,
+                          color: Colors.orange,
+                        )),
+                    onRatingUpdate: (value) {
+                      setState(() {
+                        rating = value;
+                      });
+                }),
               Text("La puntuación actual es $rating estrellas", style: TextStyle(fontSize: 15)),              
             ],
           ),

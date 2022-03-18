@@ -92,7 +92,7 @@ class _LoginState extends State<Login> {
                   'CELIPAL',
                   style: TextStyle(
                     fontSize: 40,
-                    color: Color.fromARGB(179, 226, 221, 221),
+                    color: Color.fromARGB(255, 239, 241, 245),
                     fontWeight: FontWeight.bold,
                   ),
                 ),

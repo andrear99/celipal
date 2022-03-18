@@ -87,7 +87,7 @@ class body_update_productoState extends State<body_update_producto> {
     _nombre.text = widget.producto.get('nombre');
     _descripcion.text = widget.producto.get('descripcion');
     _marca.text = widget.producto.get('marca');
-    _precio.text = widget.producto.get('precio_estimado');
+    _precio.text = widget.producto.get('precio_estimado').toString();
     _urlImage = widget.producto.get('imagen');
     _listaFinalAlergenos = widget.producto.get('alergenos');
     _listaFinalCategorias = widget.producto.get('categorias');
@@ -400,7 +400,7 @@ void _upload() async{
       {
         "nombre" : _nombre.text,
         "marca" : _marca.text,
-        "precio_estimado" : _precio.text,
+        "precio_estimado" :double.parse(_precio.text),
         "face" : face,
         "descripcion" : _descripcion.text,
         "imagen" : _urlImage,
