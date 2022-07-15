@@ -305,10 +305,10 @@ class PaginaRegistroState extends State<PaginaRegistro> {
             "nombre": _usuarioController.text.trim(),
             "UID": 'null',
             "email": _emailController.text.trim(),
+            "imagen": 'https://cdn.pixabay.com/photo/2017/02/23/13/05/profile-2092113_960_720.png',
             "isAdmin": false, // En un principio isAdmin siempre será false-
             "restaurantes_fav": [],
             "productos_fav": []
-            //"isAdmin": {"street": "street 24", "city": "new york"}
           }).then((value) {
             print(value.id);
           });

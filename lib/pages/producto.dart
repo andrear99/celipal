@@ -33,10 +33,6 @@ class _producto_formState extends State<producto_form> {
     );
   }
 
-  void _salir(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pop(context);
-  }
 }
 
 class MyCustomForm extends StatefulWidget {
@@ -164,6 +160,9 @@ class MyCustomFormState extends State<MyCustomForm> {
                 if (!snapshot.hasData) {
                   return CircularProgressIndicator();
                 } else {
+                  if(currencyChecksAlergenos.isNotEmpty){ currencyChecksAlergenos.clear(); }
+                  if(currencyChecksAlergenosIDs.isNotEmpty){currencyChecksAlergenosIDs.clear();}
+                  
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
                     isCheckedAlergenos.add(false);
                     _len++;
@@ -181,7 +180,6 @@ class MyCustomFormState extends State<MyCustomForm> {
                             child: GFMultiSelect(
                               items: currencyChecksAlergenos,
                               onSelect: (value) {
-                                print('selected $value ');
                                 listaAlergenos.clear();
                                 listaAlergenos.addAll(value);
                                 ;
@@ -204,13 +202,6 @@ class MyCustomFormState extends State<MyCustomForm> {
                                 Icons.keyboard_arrow_up,
                                 color: Colors.black54,
                               ),
-                              submitButton: ElevatedButton(onPressed: (){
-                                listaAlergenos.forEach((index) {
-                                  // Lo que tenemos en ListaAlergenos son los indices de los elementos seleccionados, para acceder a ellos usamos esos indices
-                                  // para obtener los elementos de currencyCheckAlergenos de cada posicion corresp a los indices
-                                  print(currencyChecksAlergenos.elementAt(index));
-                                });
-                              }, child: Text("Aceptar"),),
                               dropdownTitleTileTextStyle: const TextStyle(
                                   fontSize: 14, color: Colors.black54),
                               padding: const EdgeInsets.all(6),
@@ -235,6 +226,8 @@ class MyCustomFormState extends State<MyCustomForm> {
                 if (!snapshot.hasData) {
                   return CircularProgressIndicator();
                 } else {
+                  if(currencyChecksCategorias.isNotEmpty){ currencyChecksCategorias.clear(); }
+                  if(currencyChecksCategoriasIDs.isNotEmpty){currencyChecksCategoriasIDs.clear();}
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
                     isCheckedCategorias.add(false);
                     _len++;
@@ -359,7 +352,6 @@ class MyCustomFormState extends State<MyCustomForm> {
               onPressed: () {
                 // devolverá true si el formulario es válido, o falso si
                 // el formulario no es válido.
-                print("holi");
                 _upload();
                 if (_formKey.currentState!.validate()) {
                   // Si el formulario es válido, queremos mostrar un Snackbar
@@ -378,11 +370,16 @@ class MyCustomFormState extends State<MyCustomForm> {
   }
 
 void _upload() async{
-  print(_urlImage);
   List<String> _listaFinalAlergenos = [];
   List<String> _listaFinalCategorias = [];
   listaAlergenos.forEach((element) {_listaFinalAlergenos.add(currencyChecksAlergenosIDs[element]);});
   listaCategorias.forEach((element) {_listaFinalCategorias.add(currencyChecksCategoriasIDs.elementAt(element));});
+
+  if (_urlImage == ""){
+    print("IMAGEN NULL");
+    _urlImage = "https://us.123rf.com/450wm/ahasoft2000/ahasoft20001911/ahasoft2000191116267/133584879-nada-icono-de-trama-el-s%C3%ADmbolo-flat-nothing-est%C3%A1-aislado-en-un-fondo-blanco-.jpg?ver=6";
+    print(_urlImage);
+  }
 
   // Subimos el producto
   await uploadFile();
@@ -402,7 +399,7 @@ void _upload() async{
     _update_categorias(_listaFinalCategorias, value.id);
     // Incluimos el producto en los alergenos seleccionados
     _update_alergenos(_listaFinalAlergenos, value.id);
-    print(value.id);});
+    });
     Navigator.pop(context);
 }
 
@@ -427,8 +424,7 @@ void _openGallery(BuildContext context) async{
 
     var imageUrl = await (await uploadTask).ref.getDownloadURL(); 
     _urlImage = imageUrl.toString();
-    print("holi" + _urlImage);
-    
+    print("AQUI 2"+_urlImage);
 }
 
 void _update_categorias(List<String> _listaFinalCategorias, String id){

@@ -24,6 +24,7 @@ class _widget_productosState extends State<widget_productos> {
   Stream<QuerySnapshot> stream_datos = FirebaseFirestore.instance.collection('Producto').snapshots();
   StreamController<QuerySnapshot> controller = StreamController<QuerySnapshot>.broadcast();
   var range_values = RangeValues(10, 90);
+  var is_filtred = false;
   
   @override
   void initState() {
@@ -87,6 +88,7 @@ class _widget_productosState extends State<widget_productos> {
                             ),
                             onPressed: () {
                                 nombre = nombre_filtro.text;
+                                is_filtred = false;
                                 if(nombre==''){
                                   stream_datos = firestoreInstance.collection('Producto').snapshots();
                                   controller.stream.drain();
@@ -97,6 +99,7 @@ class _widget_productosState extends State<widget_productos> {
                                     print("ja");
                                   });
                                 }else{
+                                    is_filtred = true;
                                     stream_datos = firestoreInstance.collection('Producto').where('nombre', isGreaterThanOrEqualTo: nombre, isLessThan: nombre + 'z').snapshots();
                                     controller.stream.drain();
                                     stream_datos.forEach((element) {
@@ -147,7 +150,7 @@ class _widget_productosState extends State<widget_productos> {
                                               ],
                                             ),
                                           ),
-                                          if(!widget.isAdmin)
+                                          if(!widget.isAdmin && is_filtred==false)
                                             Expanded(
                                               child: FutureBuilder(
                                                 future: es_fav(snapshot.data!.docs[index].id),
@@ -209,6 +212,7 @@ class _widget_productosState extends State<widget_productos> {
   }
 
   Future<bool> es_fav(String id_producto) async {
+    print("AQUI"+id_producto);
     bool res = false;
     final value = await firestoreInstance
         .collection("Usuario")
@@ -217,12 +221,15 @@ class _widget_productosState extends State<widget_productos> {
     value.docs.forEach(
       (result) {
         if (result.get('productos_fav').toString() == '[]') {
+          print("VACIA");
           res = false;
         } else {
             result.get('productos_fav').forEach((r) {
               if (r.toString() == id_producto) {
+                print("BIEN");
                 res = true;
               }else{
+                print("MAL");
                 return false;
               }
             }); 
@@ -268,7 +275,7 @@ class _widget_productosState extends State<widget_productos> {
       contentPadding: EdgeInsets.only(top: 10.0),
       content: SizedBox(
         width: 600,
-        height: 600,
+        height: 500,
         child: 
         Padding(padding: EdgeInsets.all(10), child:
           Column(
@@ -311,6 +318,7 @@ class _widget_productosState extends State<widget_productos> {
                           ),
                       ElevatedButton(
                         onPressed:() {
+                          is_filtred = true;
                           controller.stream.drain();
                           for(String id in filtro_alergenos){
                             Stream s = firestoreInstance.collection('Producto').where('alergenos', arrayContains: id).snapshots();
@@ -366,6 +374,7 @@ class _widget_productosState extends State<widget_productos> {
                           ),
                       ElevatedButton(
                         onPressed:() {
+                          is_filtred = true;
                           print("CATEGORIAS"+filtro_categorias.length.toString());
                           controller.stream.drain();
                           for(String id in filtro_categorias){
@@ -388,7 +397,44 @@ class _widget_productosState extends State<widget_productos> {
                 alignment: Alignment.topLeft,
                 child: Text("Por rango de precio:", style: TextStyle(fontWeight: FontWeight.bold),),
               ),
-              RangeSliderColorWidget(controller, 35, 100, 0, "pro")
+              RangeSliderColorWidget(controller, 35, 100, 0, "pro"),
+              Container(
+                margin: EdgeInsets.all(10),
+                alignment: Alignment.topCenter,
+                child:
+                  RaisedButton(
+                      child: Text("Mostrar Favoritos",  style: TextStyle(color: Colors.white)),
+                      color: Color.fromARGB(255, 218, 113, 106),
+                      onPressed:() async {
+                          is_filtred = true;
+                          controller.stream.drain();
+
+                         final value = await firestoreInstance
+                          .collection("Usuario")
+                          .where("email", isEqualTo: usuario!.email)
+                          .get();
+
+                          List<dynamic> lista_productos_id = value.docs.first.get("productos_fav");
+                          List<dynamic> lista_productos_nombre = [];
+                          for (var element in lista_productos_id){
+                            await firestoreInstance.collection('Producto').doc(element).get().then((DocumentSnapshot snap) {
+                            lista_productos_nombre.add(snap.get("nombre"));
+                            }
+                            );
+                          };
+                          
+                          print("TAMAÑO: "+ lista_productos_nombre.length.toString());
+                          
+                          for(String producto_fav in lista_productos_nombre){
+                            Stream s = await firestoreInstance.collection('Producto').where('nombre', isEqualTo: producto_fav).snapshots();
+                            s.forEach((element) {
+                              controller.add(element);});
+                          }
+                        setState(() {
+                          Navigator.pop(context);
+                        });
+                      })
+              ),
 
           ],
           )  

@@ -360,6 +360,12 @@ void _upload() async{
   List<String> _listaFinalEspecialidades = [];
   listaEspecialidades.forEach((element) {_listaFinalEspecialidades.add(currencyChecksEspecialidadesIDs[element]);});
 
+  if (_urlImage == ""){
+    print("IMAGEN NULL");
+    _urlImage = "https://us.123rf.com/450wm/ahasoft2000/ahasoft20001911/ahasoft2000191116267/133584879-nada-icono-de-trama-el-s%C3%ADmbolo-flat-nothing-est%C3%A1-aislado-en-un-fondo-blanco-.jpg?ver=6";
+    print(_urlImage);
+  }
+
   // Subimos el local
   await uploadFile();
   FirebaseFirestore.instance.collection('Restaurante').add(

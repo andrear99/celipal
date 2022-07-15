@@ -24,11 +24,7 @@ class _get_productoState extends State<get_producto> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 239, 241, 245),
-      appBar: AppBar(
-        title: Text('BIENVENIDO A CELIPAL - TU AMIGO CELIACO',
-            style: TextStyle(
-                fontSize: 15, color: Color.fromARGB(255, 255, 255, 255))),
-      ),
+      appBar: AppBar(),
       body: Container(
         child: body_get_producto(producto: widget.producto, isAdmin: widget.isAdmin, alergenos: []),
         padding: EdgeInsets.all(30.0),
@@ -58,7 +54,6 @@ class _body_get_productoState extends State<body_get_producto> {
 
   @override
   void initState() {
-    // TODO: implement initState
     _get_icons(widget.producto);
     super.initState();
   }
@@ -84,9 +79,18 @@ class _body_get_productoState extends State<body_get_producto> {
               ),
               const SizedBox(height: 16.0 * 1.5),
               Container(
+                margin: EdgeInsets.all(8),
                   padding: const EdgeInsets.fromLTRB(16.0,
                       16.0 * 2, 16.0, 16.0),
                   decoration: const BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                          color: Color.fromARGB(255, 111, 114, 122),
+                          blurRadius: 5.0,
+                          spreadRadius: 0.0,
+                          offset: Offset(-3.0, 4.0), // shadow direction: bottom right
+                      )
+                    ],
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(12.0 * 3),
@@ -95,12 +99,11 @@ class _body_get_productoState extends State<body_get_producto> {
                   ),
                   child: 
                   Column(
-                     mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                     mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          
                             Text(
                               widget.producto.get('nombre'),
                               style: Theme.of(context).textTheme.headline6,

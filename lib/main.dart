@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:celipal/pages/inicio_user.dart';
 import 'registro.dart';
 import 'auxiliar.dart';
-//import 'package:google_sign_in/google_sign_in.dart';
+import '../pages/forgot_password.dart';
 
 void main() async {
   // Estas lineas son lo basico para conectar con firebase
@@ -100,12 +100,16 @@ class _LoginState extends State<Login> {
               Padding(
                 padding: const EdgeInsets.only(top: 25, bottom: 50.0),
                 child: Center(
-                  child: Container(
-                      width: 200,
-                      height: 150,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.0)),
-                      child: Image.asset('assets/logo_celipal.png')),
+                  child: Material(
+                    child: CircleAvatar(
+                      maxRadius: 80.0,
+                      backgroundImage:
+                          AssetImage('assets/logo_celipal.png'),
+                    ),
+                    elevation: 18.0,
+                    shape: const CircleBorder(),
+                    clipBehavior: Clip.antiAlias,
+                  ),
                 ),
               ),
               Padding(
@@ -246,7 +250,11 @@ class _LoginState extends State<Login> {
                 height: 30,
                 width: 300,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(
+                                        builder: (BuildContext context) => ForgotPasswordPage()));
+                    
+                  },
                   child: Text(
                     '¿Olvidó la contraseña?',
                     style: TextStyle(
@@ -256,7 +264,7 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
-              Container(
+              /*Container(
                 height: 60,
                 width: 350,
                 padding: EdgeInsets.only(top: 10),
@@ -320,9 +328,9 @@ class _LoginState extends State<Login> {
                             minHeight: 2,
                             backgroundColor: Colors.blueGrey[800],
                             valueColor: AlwaysStoppedAnimation(Colors.white),
-                          )))),
+                          )))),*/
               Container(
-                height: 30,
+                height: 40,
                 child: TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -442,9 +450,9 @@ Y como nota importante también debe quedar claro que se puede trabajr con Async
     visible = !visible;
   }
 
-  void _cambiarEstadoIndicadorProgresoGoogle() {
+  /*void _cambiarEstadoIndicadorProgresoGoogle() {
     googleVisible = !googleVisible;
-  }
+  }*/
 
   @override
   void dispose() {

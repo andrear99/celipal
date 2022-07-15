@@ -343,7 +343,6 @@ void _makePhoneCall(String tel) async {
 Future<void> _get_datos_restaurante(String id, QueryDocumentSnapshot r) async {
   await _get_nombre_provincia(id);
   await _get_valoracion_media(r);
-  print(valoracion_media);
 }
 
 Future<void> _get_nombre_provincia(String id) async {
@@ -353,7 +352,6 @@ Future<void> _get_nombre_provincia(String id) async {
 Future<void> _get_valoracion_media(QueryDocumentSnapshot r) async {
   List<dynamic> id_valoraciones = r.get('valoraciones');
   n_valoraciones = id_valoraciones.length;
-  print(n_valoraciones);
   if(!id_valoraciones.isEmpty){
     List<num> nota_valoraciones = [];
     for (var v in id_valoraciones) {

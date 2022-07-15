@@ -5,22 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../main.dart';
 
-import '../widgets/widget_perfil.dart';
+import '../pages/perfil.dart';
 import '../widgets/widget_productos.dart';
 import '../widgets/widget_restaurantes.dart';
-
-/*class Inicio_User extends StatelessWidget {
-  const Inicio_User({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        title: "CELIPAL",
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(primarySwatch: Colors.yellow),
-        home: ProductosPage());
-  }
-}*/
 
 class Inicio_User extends StatefulWidget {
   Inicio_User({Key? key}) : super(key: key);
@@ -34,7 +21,7 @@ class _InicioUserState extends State<Inicio_User> {
   List<Widget> _paginas = [
     widget_productos(true),
     widget_restaurantes(true),
-    widget_perfil()
+    ProfilePage()
   ];
 
   @override
@@ -87,8 +74,6 @@ class _InicioUserState extends State<Inicio_User> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        /*
-        CurrentIndex es para que por defecto se muestre el BottomNavigationBarItem numero 0 del array (el primero, en mi caso seria la listaproductos.)*/
         currentIndex: _paginaActual,
         onTap: (index) => {
           setState(() => {_paginaActual = index})
@@ -133,7 +118,7 @@ class _InicioUserState extends State<Inicio_User> {
               .collection("Usuario")
               .doc(result.id)
               .update({"UID": uid}).then((_) {
-            print("success!");
+            print("¡Éxito!");
           });
         }
         setState(() {
